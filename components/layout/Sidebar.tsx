@@ -1,0 +1,60 @@
+'use client'
+
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+
+export function Sidebar() {
+  const pathname = usePathname()
+
+  const isActive = (href: string) => pathname === href
+
+  return (
+    <aside className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 p-6">
+      <div className="mb-8">
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold">C</span>
+          </div>
+          <span className="text-lg font-bold text-gray-800">Claro</span>
+        </Link>
+      </div>
+
+      <nav className="flex flex-col gap-2">
+        <Link
+          href="/dashboard"
+          className={`px-4 py-2 rounded-lg transition-colors ${
+            isActive('/dashboard')
+              ? 'bg-blue-50 text-blue-600 font-medium'
+              : 'text-gray-600 hover:bg-gray-50'
+          }`}
+        >
+          📊 Dashboard
+        </Link>
+        <Link
+          href="/upload"
+          className={`px-4 py-2 rounded-lg transition-colors ${
+            isActive('/upload')
+              ? 'bg-blue-50 text-blue-600 font-medium'
+              : 'text-gray-600 hover:bg-gray-50'
+          }`}
+        >
+          📤 Upload Document
+        </Link>
+        <Link
+          href="/history"
+          className={`px-4 py-2 rounded-lg transition-colors ${
+            isActive('/history')
+              ? 'bg-blue-50 text-blue-600 font-medium'
+              : 'text-gray-600 hover:bg-gray-50'
+          }`}
+        >
+          📜 Document History
+        </Link>
+      </nav>
+
+      <div className="mt-auto pt-6 border-t">
+        <p className="text-xs text-gray-500">v0.1.0</p>
+      </div>
+    </aside>
+  )
+}
