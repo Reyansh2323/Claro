@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Document } from '@/types/document'
 import { useDocumentStore } from '@/store/documentStore'
 
 export function useDocuments() {
