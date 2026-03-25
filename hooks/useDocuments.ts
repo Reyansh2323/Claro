@@ -21,13 +21,22 @@ export function useDocuments() {
   const fetchDocuments = useCallback(async () => {
     setIsLoading(true)
     try {
-      // TODO: Call API endpoint
-      // const response = await fetch('/api/documents')
-      // const data = await response.json()
-      // setDocuments(data.documents)
+      const response = await fetch('/api/documents')
+      if (!response.ok) {
+        const result = await response.json().catch(() => null)
+        const message = (result && (result as any).error) || 'Failed to fetch documents'
+        throw new Error(message)
+      }
+      const result = await response.json()
+      setDocuments(result?.data?.documents ?? [])
       setError(null)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch documents')
+    } catch (err: any) {
+      console.error('Fetching documents error:', err)
+      if (err?.message?.includes('Failed to fetch')) {
+        setError('Cannot connect to Supabase. Please check your internet or environment variables.')
+      } else {
+        setError(err?.message || 'Failed to fetch documents')
+      }
     } finally {
       setIsLoading(false)
     }

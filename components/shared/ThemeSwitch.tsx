@@ -1,36 +1,52 @@
 'use client'
 
-import { useAppTheme } from '@/hooks/useTheme'
 import { useEffect, useState } from 'react'
 import { Sun, Moon } from 'lucide-react'
 
+const applyTheme = (mode: 'light' | 'dark') => {
+  if (typeof window === 'undefined') return
+  if (mode === 'light') {
+    document.body.classList.add('light-mode')
+    document.documentElement.classList.remove('dark')
+  } else {
+    document.body.classList.remove('light-mode')
+    document.documentElement.classList.add('dark')
+  }
+  localStorage.setItem('theme-mode', mode)
+}
+
 export function ThemeSwitch() {
-  const { theme, setTheme } = useAppTheme()
-  const [mounted, setMounted] = useState(false)
+  const [isLight, setIsLight] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
+    const saved = (localStorage.getItem('theme-mode') as 'light' | 'dark') || 'dark'
+    setIsLight(saved === 'light')
+    applyTheme(saved)
   }, [])
 
-  if (!mounted) {
-    return <div className="w-16 h-10" />
+  const toggleTheme = () => {
+    const next = isLight ? 'dark' : 'light'
+    setIsLight(!isLight)
+    applyTheme(next)
   }
 
-  const isDark = theme === 'dark'
-
   return (
-    <label className="switch" aria-label="Toggle light and dark mode">
+    <label className="theme-switch" aria-label={`Switch to ${isLight ? 'dark' : 'light'} theme`}>
       <input
         type="checkbox"
-        checked={isDark}
-        onChange={() => setTheme(isDark ? 'light' : 'dark')}
+        checked={isLight}
+        onChange={toggleTheme}
+        className="theme-switch-checkbox"
+        aria-hidden="true"
       />
-      <span className="slider" />
-      <span className="sun">
-        <Sun className="w-6 h-6 text-yellow-300" />
-      </span>
-      <span className="moon">
-        <Moon className="w-6 h-6 text-sky-400" />
+      <span className="theme-switch-slider">
+        <span className="theme-switch-circle" />
+        <span className="theme-switch-icon sun">
+          <Sun className="w-4 h-4" />
+        </span>
+        <span className="theme-switch-icon moon">
+          <Moon className="w-4 h-4" />
+        </span>
       </span>
     </label>
   )

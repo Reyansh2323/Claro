@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/shared/Button'
 import { useAuth } from '@/hooks/useAuth'
+import { supabase } from '@/lib/supabaseClient'
 
 export default function SignupPage() {
   const { signup } = useAuth()
@@ -13,6 +14,32 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [authChecking, setAuthChecking] = useState(true)
+
+  useEffect(() => {
+    console.log('[Auth]: NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL)
+    console.log('[Auth]: checking supabase URL format',
+      typeof process.env.NEXT_PUBLIC_SUPABASE_URL === 'string' &&
+      process.env.NEXT_PUBLIC_SUPABASE_URL.startsWith('https://') &&
+      process.env.NEXT_PUBLIC_SUPABASE_URL.endsWith('.supabase.co')
+    )
+
+    const verifySession = async () => {
+      if (!supabase) {
+        console.error('Supabase is not initialized')
+        setError('Cannot connect to Supabase. Please check your environment configuration.')
+        setAuthChecking(false)
+        return
+      }
+      const { data } = await supabase.auth.getSession()
+      if (data.session) {
+        window.location.href = '/dashboard'
+      } else {
+        setAuthChecking(false)
+      }
+    }
+    verifySession()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,17 +54,30 @@ export default function SignupPage() {
 
     try {
       await signup(email, password, name)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Signup failed')
+    } catch (err: any) {
+      const message = err instanceof Error ? err.message : 'Signup failed'
+      if (message.includes('Cannot connect to Supabase') || message.includes('Failed to fetch')) {
+        setError('Cannot connect to Supabase. Please check your internet or environment variables.')
+      } else {
+        setError(message)
+      }
     } finally {
       setIsLoading(false)
     }
   }
 
+  if (authChecking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-brand-bg text-brand-text">
+        <p>Checking authentication status...</p>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-lg shadow-lg p-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 pt-24">
+      <div className="w-full max-w-[420px] min-w-0 sm:w-[90%]">
+        <div className="bg-white rounded-lg shadow-lg p-8 z-10">
           <div className="flex items-center justify-center gap-2 mb-8">
             <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold">C</span>

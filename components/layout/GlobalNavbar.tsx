@@ -13,6 +13,7 @@ import {
   LogOut,
 } from 'lucide-react'
 import { ThemeSwitch } from '@/components/shared/ThemeSwitch'
+import { useAuth } from '@/hooks/useAuth'
 
 export function GlobalNavbar() {
   const router = useRouter()
@@ -33,14 +34,20 @@ export function GlobalNavbar() {
     { href: '/dashboard/history', label: 'History', icon: Clock },
   ]
 
+  const { logout } = useAuth()
+
   const handleLogout = async () => {
-    // TODO: replace with auth logout logic
-    await router.push('/login')
+    try {
+      await logout()
+    } catch (error) {
+      console.error('Logout action failed:', error)
+      await router.push('/login')
+    }
   }
 
   return (
     <nav
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 w-full h-16 z-[100] transition-all duration-300 ${
         hasScrolled ? 'backdrop-blur-md bg-black/80 shadow-lg' : 'bg-transparent'
       }`}
     >

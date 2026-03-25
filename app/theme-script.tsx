@@ -1,13 +1,13 @@
 export function ThemeScript() {
   const themeScript = `
     try {
-      const theme = localStorage.getItem('theme')
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-
-      if (theme === 'dark' || (!theme && prefersDark)) {
-        document.documentElement.classList.add('dark')
-      } else {
+      const theme = localStorage.getItem('theme-mode') || 'dark'
+      if (theme === 'light') {
+        document.body.classList.add('light-mode')
         document.documentElement.classList.remove('dark')
+      } else {
+        document.body.classList.remove('light-mode')
+        document.documentElement.classList.add('dark')
       }
     } catch (e) {}
   `

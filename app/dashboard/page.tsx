@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/shared/Badge'
 import { Loading } from '@/components/shared/Loading'
+import { ThemeSwitch } from '@/components/shared/ThemeSwitch'
 import { formatDistanceToNow } from 'date-fns'
 
 export default function DashboardPage() {
@@ -36,11 +37,19 @@ export default function DashboardPage() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-slate-100 mb-2">Dashboard</h1>
-        <p className="text-gray-600 dark:text-slate-300">
-          Manage and analyze your documents
-        </p>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-slate-100 mb-2">Dashboard</h1>
+          <p className="text-gray-600 dark:text-slate-300">
+            Manage and analyze your documents
+          </p>
+        </div>
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard/upload" className="btn btn-primary">
+            Upload Document
+          </Link>
+          <ThemeSwitch />
+        </div>
       </div>
 
       {/* Stats Cards */}

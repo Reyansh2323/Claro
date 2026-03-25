@@ -19,14 +19,26 @@ export function useUpload() {
         const formData = new FormData()
         formData.append('file', file)
 
-        // TODO: Implement file upload
-        // const response = await fetch('/api/upload', {
-        //   method: 'POST',
-        //   body: formData,
-        // })
-        // const data = await response.json()
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        })
 
-        // Simulate document creation
+        if (!response.ok) {
+          const json = await response.json().catch(() => null)
+          const message = json?.error || 'Failed to upload document'
+          setError(message)
+          throw new Error(message)
+        }
+
+        const data = await response.json()
+
+        if (!data.success) {
+          const message = data.error || 'Failed to upload document'
+          setError(message)
+          throw new Error(message)
+        }
+
         const fileType: 'pdf' | 'docx' | 'txt' = file.type.includes('pdf')
           ? 'pdf'
           : file.type.includes('word')
@@ -34,12 +46,12 @@ export function useUpload() {
             : 'txt'
 
         const newDocument = {
-          id: Math.random().toString(36).substr(2, 9),
+          id: data.data.documentId || Math.random().toString(36).substr(2, 9),
           fileName: file.name,
           fileType,
           uploadedAt: new Date().toISOString(),
           fileSize: file.size,
-          status: 'PROCESSING' as const,
+          status: data.data.status || 'PROCESSING',
           tags: [],
         }
 

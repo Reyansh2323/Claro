@@ -31,7 +31,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${playfair.variable} ${inter.variable} text-slate-100 bg-black`}
+      className={`${playfair.variable} ${inter.variable}`}
     >
       <head>
         <ThemeScript />
@@ -41,7 +41,7 @@ export default function RootLayout({
         className="min-h-screen bg-brand-bg text-brand-text transition-colors duration-300"
       >
         <Providers>
-          <div className="fade-in-page min-h-screen">{children}</div>
+          <div className="fade-in-page min-h-screen pt-20">{children}</div>
         </Providers>
       </body>
     </html>
