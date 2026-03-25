@@ -33,12 +33,15 @@ export function Hero() {
 
   useEffect(() => {
     // Hide cursor after typing is complete
-    if (isTypingComplete) {
-      const timer = setTimeout(() => {
-        setCursorVisible(false)
-      }, 1500)
-      return () => clearTimeout(timer)
+    if (!isTypingComplete) {
+      return
     }
+
+    const timer = setTimeout(() => {
+      setCursorVisible(false)
+    }, 1500)
+
+    return () => clearTimeout(timer)
   }, [isTypingComplete])
 
   return (

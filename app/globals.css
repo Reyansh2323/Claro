@@ -242,8 +242,6 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
 }
-    transform: translateX(30px);
-  }
 
   .heading-lg {
     @apply text-5xl sm:text-6xl lg:text-7xl font-serif font-bold leading-tight tracking-tight;
