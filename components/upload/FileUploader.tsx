@@ -2,7 +2,8 @@
 
 import { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Button } from '@/components/shared/Button'
+import { FileText, X } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 
 interface FileUploaderProps {
   onUpload: (file: File) => Promise<void>
@@ -74,8 +75,10 @@ export function FileUploader({
         } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <input {...getInputProps()} />
-        <div className="text-4xl mb-3">📄</div>
-        <p className="text-lg font-semibold text-gray-700 mb-1">
+        <div className="mb-3 flex items-center justify-center text-brand-primary">
+          <FileText className="h-10 w-10" />
+        </div>
+        <p className="text-lg font-semibold text-brand-text mb-1">
           Drag and drop your document here
         </p>
         <p className="text-gray-500 text-sm mb-4">
@@ -96,7 +99,7 @@ export function FileUploader({
               onClick={() => setSelectedFile(null)}
               className="text-gray-500 hover:text-gray-700"
             >
-              ✕
+              <X className="h-5 w-5" />
             </button>
           </div>
           <Button

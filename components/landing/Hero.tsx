@@ -22,7 +22,7 @@ export function Hero() {
             {/* Headline */}
             <h1
               ref={ref}
-              className={`text-5xl sm:text-6xl lg:text-7xl font-serif font-bold leading-[1.1] text-gray-900 dark:text-white transition-all duration-700 ${
+              className={`text-5xl sm:text-6xl lg:text-7xl font-serif font-bold leading-[1.1] text-brand-text transition-all duration-700 ${
                 hasAnimated
                   ? 'opacity-100 translate-y-0'
                   : 'opacity-0 translate-y-6'
@@ -34,7 +34,7 @@ export function Hero() {
 
             {/* Subtitle */}
             <p
-              className={`text-lg sm:text-xl text-gray-600 dark:text-slate-400 leading-relaxed transition-all duration-700 ${
+              className={`text-lg sm:text-xl text-brand-muted leading-relaxed transition-all duration-700 ${
                 hasAnimated
                   ? 'opacity-100 translate-y-0'
                   : 'opacity-0 translate-y-6'
@@ -55,13 +55,13 @@ export function Hero() {
             >
               <Link
                 href="/signup"
-                className="px-8 py-4 bg-primary text-white rounded-lg font-semibold hover:bg-green-700 hover:shadow-lg hover:scale-105 transition-all duration-300 active:scale-95 text-center"
+                className="px-8 py-4 rounded-lg bg-brand-primary text-black font-semibold hover:bg-emerald-500 hover:shadow-lg hover:scale-105 transition-all duration-300 active:scale-95 text-center"
               >
                 Get Started
               </Link>
               <Link
                 href="#features"
-                className="px-8 py-4 border-2 border-primary text-primary dark:text-primary rounded-lg font-semibold hover:bg-green-50 dark:hover:bg-slate-900 transition-all duration-300 text-center"
+                className="px-8 py-4 rounded-lg border-2 border-brand-primary text-brand-primary font-semibold hover:bg-white/10 transition-all duration-300 text-center"
               >
                 Learn More
               </Link>

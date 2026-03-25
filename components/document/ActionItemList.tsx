@@ -2,6 +2,7 @@
 
 import { ActionItem } from '@/types/document'
 import { formatDistanceToNow } from 'date-fns'
+import { AlertCircle, TrendingUp, Zap, CheckCircle2 } from 'lucide-react'
 import { Badge } from '@/components/shared/Badge'
 
 interface ActionItemListProps {
@@ -16,10 +17,10 @@ const priorityColors = {
 } as const
 
 const priorityIcons = {
-  CRITICAL: '🔴',
-  HIGH: '🟠',
-  MEDIUM: '🟡',
-  LOW: '🟢',
+  CRITICAL: <AlertCircle className="h-5 w-5 text-red-400" />,
+  HIGH: <TrendingUp className="h-5 w-5 text-orange-400" />,
+  MEDIUM: <Zap className="h-5 w-5 text-yellow-400" />,
+  LOW: <CheckCircle2 className="h-5 w-5 text-emerald-400" />,
 } as const
 
 export function ActionItemList({ items }: ActionItemListProps) {

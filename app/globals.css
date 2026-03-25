@@ -6,13 +6,17 @@
 
 @layer base {
   :root {
-    color-scheme: light;
-    --gradient-hero: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
-  }
-
-  :root.dark {
     color-scheme: dark;
-    --gradient-hero: #000000;
+    --app-bg: #000000;
+    --app-surface: #111111;
+    --app-surface-2: #0f0f0f;
+    --app-border: #1f2937;
+    --app-border-soft: #2a2a2a;
+    --app-text: #f8fafc;
+    --app-muted: #94a3b8;
+    --app-primary: #10B981;
+    --app-transition: 250ms ease;
+    --gradient-hero: linear-gradient(135deg, #020202 0%, #070707 40%, #0d0d0d 100%);
   }
 
   * {
@@ -26,31 +30,47 @@
   }
 
   body {
-    background: var(--gradient-hero);
-    color: #1e293b;
+    min-height: 100vh;
+    background: var(--app-bg);
+    color: var(--app-text);
     font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
       'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
       sans-serif;
-    transition: background-color 300ms ease-out, color 300ms ease-out, border-color 300ms ease-out;
+    transition: background var(--app-transition), color var(--app-transition), border-color var(--app-transition);
   }
 
-  body.dark {
-    background: #000000;
-    color: #f1f5f9;
+  .dark body {
+    background: var(--app-bg);
+    color: var(--app-text);
+  }
+
+  .fade-in-page {
+    animation: fadeInPage 0.5s ease-out forwards;
+  }
+
+  @keyframes fadeInPage {
+    0% { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
   }
 }
 
 @layer components {
   .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-all duration-300;
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-300 border border-transparent;
+    background: var(--app-surface);
+    color: var(--app-text);
   }
 
   .btn-primary {
-    @apply btn bg-primary text-white hover:bg-green-700 hover:shadow-lg hover:scale-105 active:scale-95;
+    @apply btn bg-primary text-white hover:shadow-lg hover:scale-105 active:scale-95;
+    background: var(--app-primary);
+    border-color: var(--app-primary);
   }
 
   .btn-secondary {
-    @apply btn bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800;
+    @apply btn bg-slate-800 text-slate-100 hover:bg-slate-700;
+    background: var(--app-surface);
+    border-color: var(--app-border-soft);
   }
 
   .btn-danger {
@@ -70,7 +90,15 @@
   }
 
   .card {
-    @apply bg-white rounded-lg shadow-md p-6 transition-all duration-300 hover:shadow-lg dark:bg-slate-900 dark:border dark:border-slate-800;
+    @apply rounded-lg shadow-md p-6 transition-all duration-300;
+    background: var(--app-surface);
+    border: 1px solid var(--app-border-soft);
+    color: var(--app-text);
+  }
+
+  .card:hover {
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.5);
+    border-color: var(--app-border);
   }
 
   .badge {
@@ -94,11 +122,21 @@
   }
 
   .input {
-    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-slate-900 dark:border-slate-800 dark:text-slate-100;
+    @apply w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2;
+    background: var(--app-surface-2);
+    border-color: var(--app-border-soft);
+    color: var(--app-text);
+    transition: border-color var(--app-transition), background var(--app-transition), color var(--app-transition);
+  }
+
+  .input:focus {
+    border-color: var(--app-primary);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
   }
 
   .label {
-    @apply block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2;
+    @apply block text-sm font-medium mb-2;
+    color: var(--app-muted);
   }
 
   .transition-theme {

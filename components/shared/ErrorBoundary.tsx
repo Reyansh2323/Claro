@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { XCircle } from 'lucide-react'
 
 interface ErrorBoundaryProps {
   children: React.ReactNode
@@ -32,8 +33,10 @@ export class ErrorBoundary extends React.Component<
     if (this.state.hasError) {
       return (
         <div className="flex flex-col items-center justify-center py-12 px-4">
-          <div className="text-5xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+          <div className="mb-4 text-brand-primary">
+            <XCircle className="h-10 w-10" />
+          </div>
+          <h2 className="text-2xl font-bold text-brand-text mb-2">
             Oops! Something went wrong
           </h2>
           <p className="text-gray-600 text-center mb-6">

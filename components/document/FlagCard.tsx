@@ -2,17 +2,18 @@
 
 import { Flag } from '@/types/document'
 import { Badge } from '@/components/shared/Badge'
+import { AlertCircle, Triangle, Zap, Info } from 'lucide-react'
 
 interface FlagCardProps {
   flags: Flag[]
 }
 
 const severityIcons = {
-  CRITICAL: '🚨',
-  HIGH: '⚠️',
-  MEDIUM: '⚡',
-  LOW: 'ℹ️',
-  INFO: '💡',
+  CRITICAL: <AlertCircle className="h-5 w-5 text-red-400" />,
+  HIGH: <Triangle className="h-5 w-5 text-orange-400" />,
+  MEDIUM: <Zap className="h-5 w-5 text-yellow-400" />,
+  LOW: <Info className="h-5 w-5 text-blue-400" />,
+  INFO: <Info className="h-5 w-5 text-sky-400" />,
 } as const
 
 const severityColors = {
@@ -36,10 +37,10 @@ export function FlagCard({ flags }: FlagCardProps) {
   )
 
   const categoryLabels = {
-    risk: '⚠️ Risks',
-    inconsistency: '🔄 Inconsistencies',
-    opportunity: '💰 Opportunities',
-    missing_info: '❓ Missing Information',
+risk: 'Risks',
+  inconsistency: 'Inconsistencies',
+  opportunity: 'Opportunities',
+  missing_info: 'Missing Information',
   }
 
   return (

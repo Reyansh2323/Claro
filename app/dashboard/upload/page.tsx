@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation'
 import { FileUploader } from '@/components/upload/FileUploader'
 import { useUpload } from '@/hooks/useUpload'
+import { Card } from '@/components/ui/Card'
+import { CheckCircle2 } from 'lucide-react'
 
 export default function UploadPage() {
   const router = useRouter()
@@ -31,7 +33,7 @@ export default function UploadPage() {
         </p>
       </div>
 
-      <div className="card">
+      <Card>
         <FileUploader
           onUpload={handleUpload}
           isLoading={isLoading}
@@ -44,19 +46,34 @@ export default function UploadPage() {
           </div>
         )}
 
-        <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
-          <h3 className="font-semibold text-blue-900 mb-2">
+        <div className="mt-8 p-6 rounded-lg border border-brand-border-soft bg-brand-surface-2">
+          <h3 className="font-semibold text-brand-text mb-2">
             What happens next?
           </h3>
-          <ul className="text-blue-800 space-y-1 text-sm">
-            <li>✓ Your document is uploaded securely</li>
-            <li>✓ Our AI analyzes it in real-time</li>
-            <li>✓ Results are ready in seconds (usually 2-5s)</li>
-            <li>✓ You can ask follow-up questions</li>
-            <li>✓ Your data is stored securely and never shared</li>
+          <ul className="space-y-1 text-sm text-brand-muted">
+            <li className="flex items-start gap-2">
+              <CheckCircle2 className="h-4 w-4 text-brand-primary mt-1" />
+              <span>Your document is uploaded securely</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle2 className="h-4 w-4 text-brand-primary mt-1" />
+              <span>Our AI analyzes it in real-time</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle2 className="h-4 w-4 text-brand-primary mt-1" />
+              <span>Results are ready in seconds (usually 2-5s)</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle2 className="h-4 w-4 text-brand-primary mt-1" />
+              <span>You can ask follow-up questions</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle2 className="h-4 w-4 text-brand-primary mt-1" />
+              <span>Your data is stored securely and never shared</span>
+            </li>
           </ul>
         </div>
-      </div>
+      </Card>
     </div>
   )
 }

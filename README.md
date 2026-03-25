@@ -2,7 +2,7 @@
 
 A complete Next.js 14 frontend for the Claro document intelligence application. Transform complex documents into clear, actionable insights with AI-powered analysis.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js 18+ or higher
@@ -53,7 +53,7 @@ npm run dev
 
 Open http://localhost:3000 in your browser.
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 claro/
@@ -108,7 +108,7 @@ claro/
 └── package.json                      # Dependencies
 ```
 
-## 🎨 Frontend Pages
+## Frontend Pages
 
 ### 1. Landing Page (`/`)
 - Hero section with product overview
@@ -145,7 +145,7 @@ claro/
 - Delete functionality
 - Quick access to analyses
 
-## 🧩 Component Library
+## Component Library
 
 ### Shared Components
 
@@ -200,7 +200,7 @@ Grouped alerts and risks organized by category
 #### ChatBar
 Interactive chat interface for document questions
 
-## 🔄 State Management (Zustand)
+## State Management (Zustand) (Zustand)
 
 The app uses Zustand for lightweight state management:
 
@@ -223,7 +223,7 @@ const {
 } = useDocumentStore()
 ```
 
-## 🎯 Custom Hooks
+## Custom Hooks
 
 ### useAuth
 Handles user authentication (login, signup, logout)
@@ -253,7 +253,7 @@ Manages chat messages and conversation with documents
 const { messages, isLoading, sendMessage, clearMessages } = useChat(documentId)
 ```
 
-## 🐛 Mock Data & Development
+## Mock Data & Development
 
 The frontend currently uses mock data via hooks. To test the full flow:
 
@@ -262,7 +262,7 @@ The frontend currently uses mock data via hooks. To test the full flow:
 3. **Results**: Displays placeholder analysis
 4. **Chat**: Shows placeholder responses
 
-## 🔌 API Integration (Next Steps)
+## Next Steps)
 
 The frontend is ready to connect to backend APIs:
 
@@ -289,7 +289,7 @@ The frontend is ready to connect to backend APIs:
    - Body: `{ email, password }`
    - Response: `{ sessionToken, user }`
 
-## 🎨 Styling
+## Styling
 
 The project uses Tailwind CSS with custom utilities:
 
@@ -307,7 +307,7 @@ The project uses Tailwind CSS with custom utilities:
 - `.input` - Input field
 - `.label` - Form label
 
-## 📦 Dependencies
+## Dependencies
 
 - **Next.js 14** - React framework
 - **React 18** - UI library
@@ -320,7 +320,7 @@ The project uses Tailwind CSS with custom utilities:
 - **axios** - HTTP client (utility)
 - **clsx** - Class name utilities
 
-## 🔒 Security Considerations
+## Security Considerations
 
 - All form inputs are validated
 - Error messages don't leak sensitive info
@@ -328,20 +328,20 @@ The project uses Tailwind CSS with custom utilities:
 - Environment variables not exposed to client (removed from build)
 - Error boundaries prevent app crashes
 
-## 📱 Responsive Design
+## Responsive Design
 
 The app is fully responsive:
 - Mobile: Single column layout, hamburger menu
 - Tablet: 2-column dashboard
 - Desktop: Full sidebar + content layout
 
-## 🚀 Build
+## Build
 
 ```bash
 npm run build
 ```
 
-## 📊 Performance
+## Performance
 
 - Code splitting automatic with Next.js
 - Images optimized with next/image
@@ -349,7 +349,7 @@ npm run build
 - Debounced search input
 - Memoized components where needed
 
-## 🤝 Next Steps
+## Next Steps
 
 1. **Implement Backend APIs**
    - Connect document upload to Supabase Storage
@@ -376,10 +376,10 @@ npm run build
    - Set up CI/CD pipeline
    - Configure production environment
 
-## 📝 License
+## License
 
 MIT
 
-## 📧 Support
+## Support
 
 For issues or questions, please check the architecture plan at `/home/codespace/.claude/plans/functional-petting-stroustrup.md`

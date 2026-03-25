@@ -18,6 +18,15 @@ const config = {
         warning: '#F59E0B',
         error: '#EF4444',
         info: '#3B82F6',
+        brand: {
+          bg: '#000000',
+          surface: '#111111',
+          surface2: '#0f0f0f',
+          border: '#1f2937',
+          borderSoft: '#2a2a2a',
+          text: '#f8fafc',
+          muted: '#94a3b8',
+        },
         dark: {
           bg: '#000000',
           card: '#111111',

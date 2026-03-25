@@ -1,17 +1,18 @@
 'use client'
 
 import { KeyMetric } from '@/types/document'
+import { DollarSign, CalendarDays, Hash, BarChart2, Info } from 'lucide-react'
 
 interface MetricsDisplayProps {
   metrics: KeyMetric[]
 }
 
 const categoryIcons = {
-  financial: '💰',
-  date: '📅',
-  count: '🔢',
-  percentage: '📊',
-  other: 'i',
+  financial: <DollarSign className="h-5 w-5 text-emerald-400" />,
+  date: <CalendarDays className="h-5 w-5 text-sky-400" />,
+  count: <Hash className="h-5 w-5 text-orange-400" />,
+  percentage: <BarChart2 className="h-5 w-5 text-indigo-400" />,
+  other: <Info className="h-5 w-5 text-gray-400" />,
 } as const
 
 export function MetricsDisplay({ metrics }: MetricsDisplayProps) {

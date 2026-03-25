@@ -84,15 +84,15 @@ export function FeaturesSection() {
     <section
       ref={ref}
       id="features"
-      className="py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-black"
+      className="py-20 px-4 sm:px-6 lg:px-8 bg-brand-bg"
     >
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-serif font-bold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-4xl sm:text-5xl font-serif font-bold text-brand-text mb-4">
             Why Claro?
           </h2>
-          <p className="text-xl text-gray-600 dark:text-slate-300 max-w-2xl mx-auto">
+          <p className="text-xl text-brand-muted max-w-2xl mx-auto">
             Powerful AI-driven features that turn overwhelming documents into clear insights in seconds.
           </p>
         </div>
@@ -102,7 +102,7 @@ export function FeaturesSection() {
           {FEATURES.map((feature, idx) => (
             <div
               key={idx}
-              className={`p-8 rounded-xl bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer ${
+              className={`p-8 rounded-xl bg-brand-surface border border-brand-border-soft hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer ${
                 visibleIndexes.includes(idx)
                   ? 'opacity-100 translate-y-0'
                   : 'opacity-0 translate-y-8'

@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { Inbox, FileText } from 'lucide-react'
 import { useDocuments } from '@/hooks/useDocuments'
-import { Button } from '@/components/shared/Button'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/shared/Badge'
 import { Loading } from '@/components/shared/Loading'
 import { formatDistanceToNow } from 'date-fns'
@@ -46,8 +48,8 @@ export default function HistoryPage() {
       </div>
 
       {/* Sort Controls */}
-      <div className="card mb-6">
-        <div className="flex justify-between items-center">
+      <Card className="mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <label className="label">Sort by</label>
             <select
@@ -63,15 +65,17 @@ export default function HistoryPage() {
             <Button variant="primary">Upload New Document</Button>
           </Link>
         </div>
-      </div>
+      </Card>
 
       {/* Documents List */}
       {isLoading ? (
         <Loading message="Loading document history..." />
       ) : documents.length === 0 ? (
-        <div className="card text-center py-12">
-          <div className="text-6xl mb-4">📭</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <Card className="text-center py-12">
+          <div className="mb-4 flex items-center justify-center text-brand-primary">
+            <Inbox className="h-10 w-10" />
+          </div>
+          <h2 className="text-2xl font-bold text-brand-text mb-2">
             No documents yet
           </h2>
           <p className="text-gray-600 mb-6">
@@ -80,7 +84,7 @@ export default function HistoryPage() {
           <Link href="/dashboard/upload">
             <Button variant="primary">Upload Document</Button>
           </Link>
-        </div>
+        </Card>
       ) : (
         <div className="space-y-4">
           {sortedDocuments.map((doc) => (
@@ -88,9 +92,9 @@ export default function HistoryPage() {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="text-3xl">📄</span>
+                    <FileText className="h-6 w-6 text-brand-primary" />
                     <div>
-                      <h3 className="font-semibold text-lg text-gray-900">
+                      <h3 className="font-semibold text-lg text-brand-text">
                         {doc.fileName}
                       </h3>
                       <p className="text-sm text-gray-600">

@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { FileText, Upload, Clock } from 'lucide-react'
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -28,7 +29,10 @@ export function Sidebar() {
               : 'text-gray-600 hover:bg-gray-50'
           }`}
         >
-          📊 Dashboard
+          <span className="inline-flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Dashboard
+          </span>
         </Link>
         <Link
           href="/dashboard/upload"
@@ -38,7 +42,10 @@ export function Sidebar() {
               : 'text-gray-600 hover:bg-gray-50'
           }`}
         >
-          📤 Upload Document
+          <span className="inline-flex items-center gap-2">
+            <Upload className="h-4 w-4" />
+            Upload Document
+          </span>
         </Link>
         <Link
           href="/dashboard/history"
@@ -48,7 +55,10 @@ export function Sidebar() {
               : 'text-gray-600 hover:bg-gray-50'
           }`}
         >
-          📜 Document History
+          <span className="inline-flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            Document History
+          </span>
         </Link>
       </nav>
 

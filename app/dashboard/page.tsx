@@ -1,10 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { FileText, CheckCircle2, Clock, XCircle, Inbox } from 'lucide-react'
 import { useDocumentStore } from '@/store/documentStore'
 import { useDocuments } from '@/hooks/useDocuments'
-import { Button } from '@/components/shared/Button'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/shared/Badge'
 import { Loading } from '@/components/shared/Loading'
 import { formatDistanceToNow } from 'date-fns'
@@ -43,16 +46,16 @@ export default function DashboardPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         {[
-          { label: 'Total Documents', value: stats.total, icon: '📄' },
-          { label: 'Completed', value: stats.completed, icon: '✅' },
-          { label: 'Processing', value: stats.processing, icon: '⏳' },
-          { label: 'Failed', value: stats.failed, icon: '❌' },
+          { label: 'Total Documents', value: stats.total, icon: <FileText className="h-8 w-8" /> },
+          { label: 'Completed', value: stats.completed, icon: <CheckCircle2 className="h-8 w-8" /> },
+          { label: 'Processing', value: stats.processing, icon: <Clock className="h-8 w-8" /> },
+          { label: 'Failed', value: stats.failed, icon: <XCircle className="h-8 w-8" /> },
         ].map((stat, i) => (
-          <div key={i} className="card text-center">
-            <div className="text-3xl mb-2">{stat.icon}</div>
-            <p className="text-gray-600 dark:text-slate-300 text-sm">{stat.label}</p>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
-          </div>
+          <Card key={i} className="text-center">
+            <div className="mb-2 text-brand-primary flex items-center justify-center">{stat.icon}</div>
+            <p className="text-brand-muted text-sm">{stat.label}</p>
+            <p className="text-3xl font-bold text-brand-text">{stat.value}</p>
+          </Card>
         ))}
       </div>
 
@@ -60,28 +63,28 @@ export default function DashboardPage() {
       <div className="card mb-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="label">Search</label>
-            <input
+            <Input
+              label="Search"
               type="text"
               placeholder="Search documents..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="input"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
             />
           </div>
           <div>
-            <label className="label">Status</label>
-            <select
+            <Input
+              label="Status"
+              as="select"
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="input"
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
+              className="text-brand-text"
             >
               <option value="ALL">All Status</option>
               <option value="PENDING">Pending</option>
               <option value="PROCESSING">Processing</option>
               <option value="COMPLETED">Completed</option>
               <option value="FAILED">Failed</option>
-            </select>
+            </Input>
           </div>
           <div className="flex items-end gap-2">
             <Link href="/dashboard/upload" className="flex-1">
@@ -97,9 +100,11 @@ export default function DashboardPage() {
       {isLoading ? (
         <Loading message="Loading documents..." />
       ) : filteredDocuments.length === 0 ? (
-        <div className="card text-center py-12">
-          <div className="text-5xl mb-4">📭</div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+        <Card className="text-center py-12">
+          <div className="mb-4 flex items-center justify-center text-brand-primary">
+            <Inbox className="h-10 w-10" />
+          </div>
+          <h3 className="text-xl font-semibold text-brand-text mb-2">
             No documents yet
           </h3>
           <p className="text-gray-600 mb-6">
@@ -108,7 +113,7 @@ export default function DashboardPage() {
           <Link href="/dashboard/upload">
             <Button variant="primary">Upload Document</Button>
           </Link>
-        </div>
+        </Card>
       ) : (
         <div className="card">
           <div className="overflow-x-auto">
