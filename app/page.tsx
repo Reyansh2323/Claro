@@ -1,17 +1,37 @@
-import { GlobalNavbar } from '@/components/layout/GlobalNavbar'
+'use client'
+
+import { motion } from 'framer-motion'
+import LandingNavbar from '@/components/landing/Navbar'
 import { Hero } from '@/components/landing/Hero'
 import { FeaturesSection } from '@/components/landing/FeaturesSection'
+import { CTASection } from '@/components/landing/CTASection'
 import { Footer } from '@/components/layout/Footer'
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-brand-bg text-brand-text">
-      <GlobalNavbar />
-      <main className="pt-16 fade-in-page">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8 }}
+      className="min-h-screen bg-black text-text-primary overflow-hidden"
+    >
+      {/* Navigation */}
+      <LandingNavbar />
+
+      {/* Main Content */}
+      <main className="relative">
+        {/* Hero Section */}
         <Hero />
+
+        {/* Features Section */}
         <FeaturesSection />
+
+        {/* CTA Section */}
+        <CTASection />
       </main>
-      <Footer />
-    </div>
+
+      {/* Footer */}
+      <Footer show={true} />
+    </motion.div>
   )
 }

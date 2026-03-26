@@ -19,7 +19,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'Claro - AI Document Intelligence',
-  description: 'Transform complex documents into actionable insights',
+  description: 'Transform complex legal documents into actionable insights with advanced AI analysis',
 }
 
 export default function RootLayout({
@@ -38,11 +38,23 @@ export default function RootLayout({
       </head>
       <body
         suppressHydrationWarning
-        className="min-h-screen bg-brand-bg text-brand-text transition-colors duration-300"
+        className="min-h-screen bg-black-base text-brand-text transition-colors duration-300"
       >
-        <Providers>
-          <div className="fade-in-page min-h-screen pt-20">{children}</div>
-        </Providers>
+        {/* Animated gradient blob background */}
+        <div id="gradient-blobs" className="z-glass-bg">
+          <div className="blob blob-1"></div>
+          <div className="blob blob-2"></div>
+          <div className="blob blob-3"></div>
+        </div>
+
+        {/* Main content wrapper with proper z-index */}
+        <div className="z-glass-content relative min-h-screen">
+          <Providers>
+            <div className="fade-in-page min-h-screen">
+              {children}
+            </div>
+          </Providers>
+        </div>
       </body>
     </html>
   )

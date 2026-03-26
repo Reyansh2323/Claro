@@ -1,129 +1,117 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
+import { GlassCard } from '@/components/ui/GlassCard'
+import { getStaggerContainerAnimation, getStaggerChildAnimation } from '@/hooks/useAnimations'
 import {
   FileText,
   DollarSign,
   CheckCircle2,
   AlertTriangle,
   MessageSquare,
-  BarChart3,
+  Zap,
 } from 'lucide-react'
 
 interface Feature {
   icon: React.ReactNode
   title: string
   description: string
+  gradient: string
 }
 
 const FEATURES: Feature[] = [
   {
-    icon: <FileText className="w-8 h-8" strokeWidth={1.5} />,
-    title: 'Plain English Summaries',
-    description: 'Get clear, jargon-free explanations of even the most complex documents in seconds.',
+    icon: <FileText size={24} />,
+    title: 'Instant Analysis',
+    description: 'Extract key information from any legal document in seconds with AI-powered intelligence.',
+    gradient: 'from-cyan-400/20 to-cyan-500/10',
   },
   {
-    icon: <DollarSign className="w-8 h-8" strokeWidth={1.5} />,
-    title: 'Key Numbers Extracted',
-    description: 'Automatically pull out dollar amounts, dates, percentages, and other critical metrics.',
+    icon: <AlertTriangle size={24} />,
+    title: 'Risk Detection',
+    description: 'Automatically identify potential risks, unfavorable clauses, and legal pitfalls.',
+    gradient: 'from-red-400/20 to-red-500/10',
   },
   {
-    icon: <CheckCircle2 className="w-8 h-8" strokeWidth={1.5} />,
-    title: 'Action Items & Deadlines',
-    description: 'See what you need to do and when, prioritized by urgency and impact.',
+    icon: <CheckCircle2 size={24} />,
+    title: 'Compliance Check',
+    description: 'Ensure documents meet regulatory requirements and industry standards.',
+    gradient: 'from-emerald-400/20 to-emerald-500/10',
   },
   {
-    icon: <AlertTriangle className="w-8 h-8" strokeWidth={1.5} />,
-    title: 'Risk Alerts',
-    description: 'Get flagged on potential issues, missing info, and unexpected terms before they become problems.',
+    icon: <DollarSign size={24} />,
+    title: 'Financial Summary',
+    description: 'Extract financial terms, payment schedules, and cost implications instantly.',
+    gradient: 'from-yellow-400/20 to-yellow-500/10',
   },
   {
-    icon: <MessageSquare className="w-8 h-8" strokeWidth={1.5} />,
-    title: 'Ask Questions',
-    description: 'Chat with AI about anything in your documents. Get answers instantly and in plain English.',
+    icon: <MessageSquare size={24} />,
+    title: 'AI Chat Assistant',
+    description: 'Ask questions about your documents and get intelligent, contextual answers.',
+    gradient: 'from-purple-400/20 to-purple-500/10',
   },
   {
-    icon: <BarChart3 className="w-8 h-8" strokeWidth={1.5} />,
-    title: 'Track Over Time',
-    description: 'Keep a searchable library of all analyzed documents with version history and comparisons.',
+    icon: <Zap size={24} />,
+    title: 'Custom Reports',
+    description: 'Generate comprehensive reports tailored to your specific needs and requirements.',
+    gradient: 'from-blue-400/20 to-blue-500/10',
   },
 ]
 
 export function FeaturesSection() {
-  const [visibleIndexes, setVisibleIndexes] = useState<number[]>([])
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const currentRef = ref.current
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          // Stagger animation for each feature
-          FEATURES.forEach((_, idx) => {
-            setTimeout(() => {
-              setVisibleIndexes((prev) => [...new Set([...prev, idx])])
-            }, idx * 100)
-          })
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    if (currentRef) {
-      observer.observe(currentRef)
-    }
-
-    return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef)
-      }
-    }
-  }, [])
-
   return (
-    <section
-      ref={ref}
-      id="features"
-      className="py-20 px-4 sm:px-6 lg:px-8 bg-brand-bg"
-    >
+    <section id="features" className="relative py-24 px-6">
       <div className="max-w-7xl mx-auto">
-        {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-serif font-bold text-brand-text mb-4">
-            Why Claro?
-          </h2>
-          <p className="text-xl text-brand-muted max-w-2xl mx-auto">
-            Powerful AI-driven features that turn overwhelming documents into clear insights in seconds.
-          </p>
-        </div>
+        {/* Header */}
+        <motion.div
+          {...getStaggerContainerAnimation()}
+          className="text-center mb-16"
+        >
+          <motion.div {...getStaggerChildAnimation()} className="mb-4">
+            <span className="inline-block px-4 py-2 rounded-full bg-glass-light border border-glass-border text-xs font-semibold text-accent-cyan">
+              POWERFUL FEATURES
+            </span>
+          </motion.div>
+          <motion.h2 {...getStaggerChildAnimation()} className="text-4xl md:text-5xl font-bold text-text-primary mb-4">
+            Everything You Need
+          </motion.h2>
+          <motion.p
+            {...getStaggerChildAnimation()}
+            className="text-xl text-text-secondary max-w-2xl mx-auto"
+          >
+            Claro provides a comprehensive suite of tools for legal document analysis and management.
+          </motion.p>
+        </motion.div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {FEATURES.map((feature, idx) => (
-            <div
-              key={idx}
-              className={`p-8 rounded-xl bg-brand-surface border border-brand-border-soft hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer ${
-                visibleIndexes.includes(idx)
-                  ? 'opacity-100 translate-y-0'
-                  : 'opacity-0 translate-y-8'
-              }`}
-              style={{
-                transitionDuration: '600ms',
-                transitionTimingFunction: 'ease-out',
-              }}
+        <motion.div
+          {...getStaggerContainerAnimation()}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          {FEATURES.map((feature, index) => (
+            <motion.div
+              key={index}
+              {...getStaggerChildAnimation(index * 0.1)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary dark:text-emerald-400 mb-4">
-                {feature.icon}
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                {feature.title}
-              </h3>
-              <p className="text-gray-600 dark:text-slate-300 text-sm leading-relaxed">
-                {feature.description}
-              </p>
-            </div>
+              <GlassCard variant="subtle" className="h-full">
+                <div className="flex flex-col h-full">
+                  {/* Icon */}
+                  <div
+                    className={`inline-flex w-12 h-12 rounded-lg bg-gradient-to-br ${feature.gradient} items-center justify-center text-accent-cyan mb-4`}
+                  >
+                    {feature.icon}
+                  </div>
+
+                  {/* Content */}
+                  <h3 className="text-lg font-semibold text-text-primary mb-2">{feature.title}</h3>
+                  <p className="text-text-muted text-sm leading-relaxed">{feature.description}</p>
+                </div>
+              </GlassCard>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   )
