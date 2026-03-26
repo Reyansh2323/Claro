@@ -11,13 +11,15 @@ import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/shared/Badge'
 import { Loading } from '@/components/shared/Loading'
 import { ThemeSwitch } from '@/components/shared/ThemeSwitch'
+import { runConnectionDiagnostics } from '@/lib/debugConnections'
 import { formatDistanceToNow } from 'date-fns'
 
 export default function DashboardPage() {
-  const { documents, isLoading, fetchDocuments } = useDocuments()
+  const { documents, isLoading, fetchDocuments, createDocument } = useDocuments()
   const { setSearchTerm, searchTerm, getFilteredDocuments } =
     useDocumentStore()
   const [statusFilter, setStatusFilter] = useState<string>('ALL')
+  const [isRunningDiagnostics, setIsRunningDiagnostics] = useState(false)
 
   useEffect(() => {
     fetchDocuments()
@@ -26,6 +28,13 @@ export default function DashboardPage() {
   const filteredDocuments = getFilteredDocuments().filter(
     (doc) => statusFilter === 'ALL' || doc.status === statusFilter
   )
+
+  const formatUploadedAt = (uploadedAt: string | undefined | null) => {
+    if (!uploadedAt) return 'Unknown upload time'
+    const date = new Date(uploadedAt)
+    if (Number.isNaN(date.getTime())) return 'Unknown upload time'
+    return formatDistanceToNow(date, { addSuffix: true })
+  }
 
   const stats = {
     total: documents.length,
@@ -48,6 +57,35 @@ export default function DashboardPage() {
           <Link href="/dashboard/upload" className="btn btn-primary">
             Upload Document
           </Link>
+          <button
+            onClick={async () => {
+              try {
+                await createDocument?.('test.png', 'https://example.com/test.png')
+              } catch (err) {
+                console.error('Create test doc failed', err)
+              }
+            }}
+            className="btn btn-secondary"
+          >
+            Insert Test Document
+          </button>
+          <button
+            onClick={async () => {
+              setIsRunningDiagnostics(true)
+              try {
+                await runConnectionDiagnostics()
+              } catch (err) {
+                console.error('Diagnostics failed:', err)
+              } finally {
+                setIsRunningDiagnostics(false)
+              }
+            }}
+            disabled={isRunningDiagnostics}
+            className="px-2 py-1 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded opacity-50 hover:opacity-100"
+            title="Run Connection Test (Raptor Debug)"
+          >
+            {isRunningDiagnostics ? 'Running...' : '🔧'}
+          </button>
           <ThemeSwitch />
         </div>
       </div>
@@ -163,9 +201,7 @@ export default function DashboardPage() {
                       <StatusBadge status={doc.status} />
                     </td>
                     <td className="py-4 px-4 text-sm text-gray-600 dark:text-slate-400">
-                      {formatDistanceToNow(new Date(doc.uploadedAt), {
-                        addSuffix: true,
-                      })}
+                      {formatUploadedAt(doc.uploadedAt)}
                     </td>
                     <td className="py-4 px-4">
                       {doc.status === 'COMPLETED' && (

@@ -21,13 +21,25 @@ export default function HistoryPage() {
 
   const sortedDocuments = [...documents].sort((a, b) => {
     if (sortBy === 'date') {
-      return (
-        new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
-      )
+      const aDate = new Date(a.uploadedAt)
+      const bDate = new Date(b.uploadedAt)
+      return bDate.getTime() - aDate.getTime()
     } else {
-      return a.fileName.localeCompare(b.fileName)
+      return (a.fileName || '').localeCompare(b.fileName || '')
     }
   })
+
+  const formatUploadedAt = (uploadedAt: string | null | undefined) => {
+    if (!uploadedAt) return 'Unknown upload time'
+    const date = new Date(uploadedAt)
+    if (Number.isNaN(date.getTime())) return 'Unknown upload time'
+    return formatDistanceToNow(date, { addSuffix: true })
+  }
+
+  const formatFileType = (fileType: string | null | undefined) => {
+    if (!fileType) return 'UNKNOWN'
+    return fileType.toString().toUpperCase()
+  }
 
   const handleDelete = async (documentId: string, fileName: string) => {
     if (window.confirm(`Delete "${fileName}"?`)) {
@@ -99,7 +111,7 @@ export default function HistoryPage() {
                       </h3>
                       <p className="text-sm text-gray-600">
                         {(doc.fileSize / 1024 / 1024).toFixed(2)} MB • Type:{' '}
-                        {doc.fileType.toUpperCase()}
+                        {formatFileType(doc.fileType)}
                       </p>
                     </div>
                   </div>
@@ -133,10 +145,7 @@ export default function HistoryPage() {
                   </div>
 
                   <p className="text-sm text-gray-500">
-                    Uploaded{' '}
-                    {formatDistanceToNow(new Date(doc.uploadedAt), {
-                      addSuffix: true,
-                    })}
+                    Uploaded {formatUploadedAt(doc.uploadedAt)}
                   </p>
                 </div>
 

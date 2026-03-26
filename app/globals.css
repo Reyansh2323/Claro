@@ -190,14 +190,14 @@
   }
 
   .theme-switch {
-    --toggle-size: 20px;
-    --container-width: 5.625em;
-    --container-height: 2.5em;
+    --toggle-size: 18px;
+    --container-width: 5.75em;
+    --container-height: 2.25em;
     --container-radius: 6.25em;
     --container-light-bg: #3D7EAE;
     --container-night-bg: #1D1F2C;
-    --circle-container-diameter: 2.125em;
-    --sun-moon-diameter: 2.125em;
+    --circle-container-diameter: 1.75em;
+    --sun-moon-diameter: 1.7em;
     --sun-bg: #ECCA2F;
     --moon-bg: #C4C9D1;
     --transition: .5s cubic-bezier(0, -0.02, 0.4, 1.25);
@@ -242,12 +242,18 @@
     height: var(--circle-container-diameter);
     border-radius: 50%;
     background: var(--sun-bg);
-    transition: transform var(--circle-transition), background var(--circle-transition);
+    transition: left var(--circle-transition), transform var(--circle-transition), background var(--circle-transition);
     z-index: 2;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0;
+  }
+
+  .theme-switch-checkbox:checked + .theme-switch-slider .theme-switch-circle {
+    left: calc(100% - var(--circle-container-diameter) - 0.2em);
+    transform: translateY(-50%);
+    background: var(--moon-bg);
   }
 
   .theme-switch-icon {
@@ -265,22 +271,17 @@
   }
 
   .theme-switch-icon.sun {
-    left: 0.25em;
+    left: 0.35em;
     opacity: 0.9;
   }
 
   .theme-switch-icon.moon {
-    right: 0.25em;
+    right: 0.35em;
     opacity: 0.9;
   }
 
   .theme-switch-checkbox:checked + .theme-switch-slider {
     background: var(--container-light-bg);
-  }
-
-  .theme-switch-checkbox:checked + .theme-switch-slider .theme-switch-circle {
-    transform: translateX(calc(100% - var(--circle-container-diameter) - 0.2em)) translateY(-50%);
-    background: var(--moon-bg);
   }
 
   .theme-switch-checkbox:checked + .theme-switch-slider .theme-switch-icon.sun {

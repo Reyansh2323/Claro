@@ -2,10 +2,30 @@
 
 import { useRouter } from 'next/navigation'
 import { useCallback } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/lib/supabaseBrowser'
+
+function getFriendlyAuthError(error: any) {
+  if (!error) return 'Operation failed. Please try again.'
+
+  const code = (error.code || error.status || '').toString().toLowerCase()
+  const message = (error.message || '').toString().toLowerCase()
+
+  if (code === 'user_already_exists' || message.includes('already exists')) {
+    return 'Account already exists. Please sign in or use another email.'
+  }
+  if (code.includes('invalid') || message.includes('invalid email') || message.includes('invalid password') || message.includes('wrong password') || message.includes('invalid login credentials')) {
+    return 'Invalid email or password. Please try again.'
+  }
+  if (message.includes('failed to fetch') || message.includes('network')) {
+    return 'Cannot connect to Supabase. Please check your internet connection.'
+  }
+
+  return error.message ? error.message : 'Operation failed. Please try again.'
+}
 
 export function useAuth() {
   const router = useRouter()
+  const supabase = createClient()
 
   const logout = useCallback(async () => {
     if (!supabase) {
@@ -32,19 +52,20 @@ export function useAuth() {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) {
           console.error('Supabase login error', error)
-          throw new Error(error.message || 'Login failed')
+          throw new Error(getFriendlyAuthError(error))
+        }
+        if (data?.user) {
+          window.location.href = '/dashboard'
+          return
         }
         if (!data?.session) {
           throw new Error('Could not initialize session. Please check your credentials and network settings.')
         }
-        router.push('/dashboard')
+        window.location.href = '/dashboard'
       } catch (error: any) {
-        if (error?.message?.includes('Failed to fetch')) {
-          throw new Error('Cannot connect to Supabase. Please check your internet or environment variables.')
-        }
+        const friendly = getFriendlyAuthError(error)
         console.error('Login failed:', error)
-        const msg = error?.message || 'Login failed due to unknown error'
-        throw new Error(msg)
+        throw new Error(friendly)
       }
     },
     [router]
@@ -65,22 +86,24 @@ export function useAuth() {
           },
         })
         if (error) {
-          console.error('Supabase signup error', error)
-          throw new Error(error.message || 'Signup failed')
+          console.error('DETAILED SUPABASE ERROR:', error)
+          throw new Error(getFriendlyAuthError(error))
         }
-        if (!data?.session) {
-          router.push('/login')
+
+        if (data?.user) {
+          window.location.href = '/dashboard'
           return
         }
-        router.push('/dashboard')
-      } catch (error: any) {
-        if (error?.message?.includes('Failed to fetch')) {
-          console.error('Signup failed due to network fetch error. Origin:', window.location.origin)
-          throw new Error('Cannot connect to Supabase. Please check your internet or environment variables.')
+
+        if (!data?.session) {
+          window.location.href = '/login'
+          return
         }
+        window.location.href = '/dashboard'
+      } catch (error: any) {
+        const friendly = getFriendlyAuthError(error)
         console.error('Signup failed:', error)
-        const msg = error?.message || 'Signup failed due to unknown error'
-        throw new Error(msg)
+        throw new Error(friendly)
       }
     },
     [router]

@@ -57,10 +57,11 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
 
   getFilteredDocuments: () => {
     const state = get()
+    const normalizedTerm = (state.searchTerm || '').toLowerCase().trim()
+
     return state.documents.filter((doc) => {
-      const matchesSearch = doc.fileName
-        .toLowerCase()
-        .includes(state.searchTerm.toLowerCase())
+      const fileName = (doc.fileName || '').toString().trim()
+      const matchesSearch = normalizedTerm === '' || fileName.toLowerCase().includes(normalizedTerm)
       const matchesTags =
         state.selectedTags.length === 0 ||
         doc.tags?.some((tag) => state.selectedTags.includes(tag.id))

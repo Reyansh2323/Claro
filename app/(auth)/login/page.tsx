@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/shared/Button'
 import { useAuth } from '@/hooks/useAuth'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/lib/supabaseBrowser'
 
 export default function LoginPage() {
   const { login } = useAuth()
@@ -13,6 +13,8 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [authChecking, setAuthChecking] = useState(true)
+
+  const supabase = createClient()
 
   useEffect(() => {
     console.log('[Auth]: NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL)
@@ -37,7 +39,7 @@ export default function LoginPage() {
       }
     }
     verifySession()
-  }, [])
+  }, [supabase])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -47,12 +49,9 @@ export default function LoginPage() {
     try {
       await login(email, password)
     } catch (err: any) {
-      const message = err instanceof Error ? err.message : 'Login failed'
-      if (message.includes('Cannot connect to Supabase') || message.includes('Failed to fetch')) {
-        setError('Cannot connect to Supabase. Please check your internet or environment variables.')
-      } else {
-        setError(message)
-      }
+      console.error('--- LOGIN ERROR OBJECT ---', err)
+      const message = err instanceof Error ? err.message : 'Login failed. Please try again.'
+      setError(message)
     } finally {
       setIsLoading(false)
     }

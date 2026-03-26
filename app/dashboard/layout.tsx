@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { GlobalNavbar } from '@/components/layout/GlobalNavbar'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Footer } from '@/components/layout/Footer'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/lib/supabaseBrowser'
 
 export default function DashboardLayout({
   children,
@@ -14,14 +14,21 @@ export default function DashboardLayout({
 }) {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
+  const supabase = createClient()
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession()
-      if (!data.session) {
+      try {
+        const { data } = await supabase.auth.getSession()
+        if (!data.session) {
+          router.push('/login')
+        }
+      } catch (error) {
+        console.error('Session check failed:', error)
         router.push('/login')
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
 
     checkSession()
@@ -37,7 +44,7 @@ export default function DashboardLayout({
         subscription.unsubscribe()
       }
     }
-  }, [router])
+  }, [router, supabase])
 
   if (loading) {
     return (

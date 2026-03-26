@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/lib/supabaseServer'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,36 +13,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabaseClient = supabase
-  if (!supabaseClient) {
-    return NextResponse.json({ success: false, error: 'Supabase connection is not initialized' }, { status: 500 })
-  }
-
-  const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession()
-  if (sessionError) {
-    console.error('Session fetch error:', sessionError)
-    return NextResponse.json({ success: false, error: sessionError.message }, { status: 401 })
-  }
-
-  const userId = sessionData?.session?.user?.id
-    if (!userId) {
+    const supabase = await createClient()
+    
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      console.error('User fetch error:', userError)
       return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 })
     }
+
+    const userId = user.id
 
     // TODO: implement actual storage upload (Supabase storage or 3rd party)
     // for now, store metadata in public.documents
 
     const fileUrl = `documents/${Date.now()}_${encodeURIComponent(file.name)}`
 
-    const { data: insertData, error: insertError } = await supabaseClient
+    const { data: insertData, error: insertError } = await supabase
       .from('documents')
       .insert([
         {
           user_id: userId,
           file_name: file.name,
           file_url: fileUrl,
-          file_size: file.size,
-          status: 'PROCESSING',
         },
       ])
       .select('id')

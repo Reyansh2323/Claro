@@ -76,6 +76,42 @@ export function useDocuments() {
     [removeDocument]
   )
 
+  const createDocument = useCallback(
+    async (fileName: string, fileUrl: string) => {
+      setIsLoading(true)
+      try {
+        const response = await fetch('/api/documents', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ file_name: fileName, file_url: fileUrl }),
+        })
+
+        if (!response.ok) {
+          const result = await response.json().catch(() => null)
+          throw new Error((result as any)?.error || 'Failed to create document')
+        }
+
+        const result = await response.json()
+        await fetchDocuments()
+        setError(null)
+        return result.data
+      } catch (err: any) {
+        console.error('Create document error:', err)
+        if (err?.message?.includes('Failed to fetch')) {
+          setError('Cannot connect to Supabase. Please check your internet or environment variables.')
+        } else {
+          setError(err?.message || 'Failed to create document')
+        }
+        throw err
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [fetchDocuments, setIsLoading]
+  )
+
   useEffect(() => {
     fetchDocuments()
   }, [fetchDocuments])
@@ -89,5 +125,6 @@ export function useDocuments() {
     deleteDocument,
     addDocument,
     updateDocument,
+    createDocument,
   }
 }
