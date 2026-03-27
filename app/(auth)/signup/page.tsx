@@ -1,295 +1,221 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import Link from 'next/link'
+import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { GlassCard } from '@/components/ui/GlassCard'
-import { GlassInput } from '@/components/ui/GlassInput'
-import { GlassButton } from '@/components/ui/GlassButton'
+import { Mail, Lock, Eye, EyeOff, UserPlus, AlertCircle, Check } from 'lucide-react'
 import { ClaroLogo } from '@/components/shared/ClaroLogo'
 import { useAuth } from '@/hooks/useAuth'
-import { createClient } from '@/lib/supabaseBrowser'
-import { User, Mail, Lock, AlertCircle, CheckCircle } from 'lucide-react'
-import { getEntranceAnimation } from '@/hooks/useAnimations'
+
+const container = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.2 } },
+}
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 100, damping: 18 } },
+}
+
+const passwordChecks = [
+  { label: 'At least 8 characters', test: (p: string) => p.length >= 8 },
+  { label: 'Contains uppercase', test: (p: string) => /[A-Z]/.test(p) },
+  { label: 'Contains number', test: (p: string) => /\d/.test(p) },
+]
 
 export default function SignupPage() {
   const router = useRouter()
   const { signup } = useAuth()
-  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [authChecking, setAuthChecking] = useState(true)
-  const [passwordStrength, setPasswordStrength] = useState<'weak' | 'medium' | 'strong' | 'none'>(
-    'none'
-  )
 
-  const supabase = createClient()
-
-  useEffect(() => {
-    const verifySession = async () => {
-      if (!supabase) {
-        console.error('Supabase is not initialized')
-        setError('Cannot connect to Supabase. Please check your environment configuration.')
-        setAuthChecking(false)
-        return
-      }
-      const { data } = await supabase.auth.getSession()
-      if (data.session) {
-        router.push('/dashboard')
-      } else {
-        setAuthChecking(false)
-      }
-    }
-    verifySession()
-  }, [supabase, router])
-
-  // Check password strength
-  const checkPasswordStrength = (pwd: string) => {
-    if (!pwd) return 'none'
-    if (pwd.length < 8) return 'weak'
-    if (/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(pwd)) return 'strong'
-    return 'medium'
-  }
-
-  const handlePasswordChange = (value: string) => {
-    setPassword(value)
-    setPasswordStrength(checkPasswordStrength(value))
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError('')
-    setSuccess('')
-
-    if (!name) {
-      setError('Full name is required')
-      return
-    }
 
     if (password !== confirmPassword) {
       setError('Passwords do not match')
       return
     }
 
-    if (passwordStrength === 'weak') {
-      setError('Password must be at least 8 characters')
+    if (!passwordChecks.every((c) => c.test(password))) {
+      setError('Password does not meet requirements')
       return
     }
 
     setIsLoading(true)
-
     try {
+      const name = email.split('@')[0] || ''
       await signup(email, password, name)
-      setSuccess('Account created successfully! Redirecting to dashboard...')
-      setTimeout(() => {
-        router.push('/dashboard')
-      }, 1500)
+      router.push('/dashboard')
     } catch (err: any) {
-      setError(err.message || 'Signup failed. Please try again.')
+      setError(err?.message || 'Failed to create account')
+    } finally {
       setIsLoading(false)
     }
   }
 
-  if (authChecking) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-2 border-accent-cyan border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-text-secondary">Checking authentication...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.6 }}
-      className="flex items-center justify-center min-h-[calc(100vh-200px)] px-4"
+      variants={container}
+      initial="hidden"
+      animate="show"
+      className="w-full max-w-md"
     >
-      <motion.div
-        {...getEntranceAnimation()}
-        initial={{ opacity: 0, y: 20, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{
-          type: 'spring',
-          stiffness: 100,
-          damping: 15,
-        }}
-        className="w-full max-w-md"
-      >
-        <GlassCard variant="dark">
-          {/* Header */}
-          <div className="flex flex-col items-center mb-8">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className="mb-4"
-            >
-              <ClaroLogo size="md" variant="light" animate={false} />
-            </motion.div>
-            <h1 className="heading-sm text-text-primary text-center">Create Account</h1>
-            <p className="text-text-muted text-sm text-center mt-2">
-              Join the future of legal document intelligence
-            </p>
-          </div>
+      {/* Logo */}
+      <motion.div variants={item} className="text-center mb-8">
+        <Link href="/" className="inline-block">
+          <ClaroLogo size="md" animate />
+        </Link>
+        <p className="text-sm text-text-dim mt-3">Create your Claro account</p>
+      </motion.div>
 
-          {/* Error Message */}
+      {/* Form Card */}
+      <motion.div
+        variants={item}
+        className="p-8 rounded-2xl"
+        style={{
+          background: 'rgba(255, 255, 255, 0.02)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          backdropFilter: 'blur(40px)',
+          boxShadow: '0 16px 64px rgba(0,0,0,0.4)',
+        }}
+      >
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Error */}
           {error && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 p-3 bg-red-500/15 border border-red-500/30 rounded-lg flex items-start gap-3"
+              className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm"
+              style={{
+                background: 'rgba(239, 68, 68, 0.08)',
+                border: '1px solid rgba(239, 68, 68, 0.20)',
+                color: '#EF4444',
+              }}
             >
-              <AlertCircle size={18} className="text-red-400 flex-shrink-0 mt-0.5" />
-              <p className="text-red-400 text-sm">{error}</p>
+              <AlertCircle size={16} />
+              {error}
             </motion.div>
           )}
 
-          {/* Success Message */}
-          {success && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-6 p-3 bg-emerald-500/15 border border-emerald-500/30 rounded-lg flex items-start gap-3"
-            >
-              <CheckCircle size={18} className="text-emerge-400 flex-shrink-0 mt-0.5" />
-              <p className="text-accent-emerald text-sm">{success}</p>
-            </motion.div>
-          )}
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Name Input */}
-            <GlassInput
-              label="Full Name"
-              type="text"
-              placeholder="John Doe"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              icon={User}
-              required
-              disabled={isLoading}
-            />
-
-            {/* Email Input */}
-            <GlassInput
-              label="Email Address"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              icon={Mail}
-              required
-              disabled={isLoading}
-            />
-
-            {/* Password Input */}
-            <div>
-              <GlassInput
-                label="Password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => handlePasswordChange(e.target.value)}
-                icon={Lock}
+          {/* Email */}
+          <div>
+            <label className="block text-xs text-text-dim font-medium tracking-wider uppercase mb-2">
+              Email
+            </label>
+            <div className="relative">
+              <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-dim pointer-events-none" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
                 required
-                disabled={isLoading}
+                className="pl-10"
               />
-              {password && (
-                <div className="mt-2 p-2 rounded-lg bg-glass-light">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div
-                      className={`h-1.5 flex-1 rounded-full ${
-                        passwordStrength === 'strong'
-                          ? 'bg-accent-emerald'
-                          : passwordStrength === 'medium'
-                          ? 'bg-yellow-400'
-                          : 'bg-red-400'
-                      }`}
-                    ></div>
-                    <span className="text-xs font-medium text-text-muted capitalize">
-                      {passwordStrength}
-                    </span>
-                  </div>
-                  <p className="text-xs text-text-muted">
-                    Use uppercase, lowercase, and numbers for stronger password
-                  </p>
-                </div>
-              )}
             </div>
-
-            {/* Confirm Password Input */}
-            <GlassInput
-              label="Confirm Password"
-              type="password"
-              placeholder="••••••••"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              icon={Lock}
-              required
-              disabled={isLoading}
-              error={confirmPassword && password !== confirmPassword ? 'Passwords do not match' : undefined}
-            />
-
-            {/* Submit Button */}
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="pt-2"
-            >
-              <GlassButton
-                type="submit"
-                variant="primary"
-                size="md"
-                fullWidth
-                loading={isLoading}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Creating Account...' : 'Create Account'}
-              </GlassButton>
-            </motion.div>
-          </form>
-
-          {/* Divider */}
-          <div className="my-6 flex items-center gap-3">
-            <div className="flex-1 h-px bg-glass-border"></div>
-            <span className="text-text-muted text-xs">Already have an account?</span>
-            <div className="flex-1 h-px bg-glass-border"></div>
           </div>
 
-          {/* Sign In Link */}
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <Link
-              href="/login"
-              className="block w-full py-2 px-4 text-center rounded-lg bg-glass-light border border-glass-border text-text-primary hover:border-glass-border-hover transition-all text-sm font-medium"
-            >
-              Sign In
-            </Link>
-          </motion.div>
+          {/* Password */}
+          <div>
+            <label className="block text-xs text-text-dim font-medium tracking-wider uppercase mb-2">
+              Password
+            </label>
+            <div className="relative">
+              <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-dim pointer-events-none" />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Create a strong password"
+                required
+                className="pl-10 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-dim hover:text-text-secondary transition-colors"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
 
-          {/* Footer */}
-          <p className="text-xs text-text-muted text-center mt-6">
-            By creating an account, you agree to our{' '}
-            <a href="#terms" className="text-accent-cyan hover:text-accent-white">
-              Terms of Service
-            </a>{' '}
-            and{' '}
-            <a href="#privacy" className="text-accent-cyan hover:text-accent-white">
-              Privacy Policy
-            </a>
-          </p>
-        </GlassCard>
+            {/* Password Strength */}
+            {password.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="mt-3 space-y-1.5"
+              >
+                {passwordChecks.map((check) => {
+                  const passes = check.test(password)
+                  return (
+                    <div key={check.label} className="flex items-center gap-2">
+                      <Check
+                        size={12}
+                        className={passes ? 'text-accent-emerald' : 'text-text-dim'}
+                      />
+                      <span className={`text-[11px] ${passes ? 'text-accent-emerald' : 'text-text-dim'}`}>
+                        {check.label}
+                      </span>
+                    </div>
+                  )
+                })}
+              </motion.div>
+            )}
+          </div>
+
+          {/* Confirm Password */}
+          <div>
+            <label className="block text-xs text-text-dim font-medium tracking-wider uppercase mb-2">
+              Confirm Password
+            </label>
+            <div className="relative">
+              <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-dim pointer-events-none" />
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm your password"
+                required
+                className="pl-10"
+              />
+            </div>
+          </div>
+
+          {/* Submit */}
+          <motion.button
+            type="submit"
+            disabled={isLoading}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            className="w-full py-3 rounded-lg bg-accent-cyan text-black font-semibold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ boxShadow: '0 0 20px rgba(6, 182, 212, 0.15)' }}
+          >
+            {isLoading ? (
+              <span className="w-4 h-4 rounded-full border-2 border-black/30 border-t-black animate-spin" />
+            ) : (
+              <>
+                <UserPlus size={16} />
+                Create Account
+              </>
+            )}
+          </motion.button>
+        </form>
       </motion.div>
+
+      {/* Footer */}
+      <motion.p variants={item} className="text-center mt-6 text-sm text-text-dim">
+        Already have an account?{' '}
+        <Link href="/login" className="text-accent-cyan hover:text-accent-cyan-light transition-colors font-medium">
+          Sign in
+        </Link>
+      </motion.p>
     </motion.div>
   )
 }

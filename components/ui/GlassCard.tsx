@@ -2,20 +2,12 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
+import { clsx, type ClassValue } from 'clsx'
+import { useSpringAnimation } from '@/hooks/useAnimations'
+import type { GlassCardProps } from '@/types/ui'
 
-export interface GlassCardProps {
-  /** Content to render inside the card */
-  children: React.ReactNode
-  /** Visual variant: 'default' = light glass, 'subtle' = lighter, 'dark' = dark overlay */
-  variant?: 'default' | 'subtle' | 'dark'
-  /** Enable hover animation (scale + glow) */
-  hover?: boolean
-  /** Additional CSS classes */
-  className?: string
-  /** Click handler */
-  onClick?: () => void
-  /** Animation delay in milliseconds */
-  delay?: number
+export function cn(...inputs: ClassValue[]) {
+  return clsx(inputs)
 }
 
 export const GlassCard: React.FC<GlassCardProps> = ({
@@ -26,41 +18,39 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   onClick,
   delay = 0,
 }) => {
-  const baseClasses =
-    'rounded-lg border transition-all duration-300 backdrop-blur-2xl'
+  const animationConfig = useSpringAnimation({ delay: delay * 0.05 })
 
-  const variantClasses = {
-    default: 'glass-card bg-glass-light border-glass-border',
-    subtle:
-      'bg-glass-lighter border-glass-border rounded-lg p-4 backdrop-blur-xl',
-    dark: 'glass-dark bg-glass-dark border-glass-border',
+  const getVariantClass = () => {
+    switch (variant) {
+      case 'dark':
+        return 'glass-panel-dark'
+      case 'subtle':
+        return 'bg-white/[0.02] border border-white/[0.04] rounded-xl'
+      case 'default':
+      default:
+        return 'glass-panel'
+    }
   }
-
-  const hoverClasses = hover
-    ? 'hover:bg-glass-lighter hover:border-glass-border-hover hover:shadow-glass-glow'
-    : ''
-
-  const combinedClasses = `${baseClasses} ${variantClasses[variant]} ${hoverClasses} ${className}`
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-      whileInView={{ opacity: 1, y: 0, scale: 1 }}
-      whileHover={
-        hover
-          ? { scale: 1.02, y: -4 }
-          : undefined
-      }
-      transition={{
-        type: 'spring',
-        stiffness: 100,
-        damping: 15,
-        delay: delay * 0.05,
-      }}
+      initial={{ opacity: 0, y: 15 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={animationConfig}
       onClick={onClick}
-      className={combinedClasses}
-      viewport={{ once: true, margin: '0px 0px -100px 0px' }}
+      className={cn(
+        getVariantClass(),
+        hover && 'glass-panel-hover cursor-default',
+        onClick && 'cursor-pointer',
+        'p-6 relative overflow-hidden',
+        className
+      )}
     >
+      {/* Decorative inner glow for default variant */}
+      {variant === 'default' && (
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/[0.1] to-transparent" />
+      )}
       {children}
     </motion.div>
   )

@@ -1,312 +1,142 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { GlassCard } from '@/components/ui/GlassCard'
-import { GlassBadge } from '@/components/ui/GlassBadge'
-import { Loading } from '@/components/shared/Loading'
-import { ArrowLeft, AlertCircle, CheckCircle, Zap } from 'lucide-react'
+import Link from 'next/link'
 import {
-  DOCUMENT_STATUS,
-} from '@/lib/constants'
-import { createClient } from '@/lib/supabaseBrowser'
-import { getEntranceAnimation } from '@/hooks/useAnimations'
+  FileText,
+  ArrowRight,
+  AlertTriangle,
+  CheckCircle2,
+  Sparkles,
+} from 'lucide-react'
+import { useDocuments } from '@/hooks/useDocuments'
+import { useDocumentStore } from '@/store/documentStore'
+import { Loading } from '@/components/shared/Loading'
 
-interface DocumentRow {
-  id: string
-  file_name: string
-  status: string
-  created_at: string
-  user_id: string
+const container = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.2 } },
 }
-
-interface AnalysisRow {
-  id: string
-  document_id: string
-  summary: string
-  action_items: string[]
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 100, damping: 18 } },
 }
 
 export default function AnalysisPage() {
-  const router = useRouter()
-  const [document, setDocument] = useState<DocumentRow | null>(null)
-  const [analysis, setAnalysis] = useState<AnalysisRow | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const supabase = createClient()
+  const { fetchDocuments, isLoading } = useDocuments()
+  const documents = useDocumentStore((state) => state.documents)
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Get logged-in user
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) {
-          router.push('/login')
-          return
-        }
+    fetchDocuments()
+  }, [fetchDocuments])
 
-        // Fetch most recent document for this user
-        const { data: docsData, error: docsError } = await supabase
-          .from('documents')
-          .select('id, file_name, status, created_at, user_id')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
+  const analyzedDocs = documents.filter((d) => d.status === 'COMPLETED' || d.status === 'FAILED')
+  const latestDoc = analyzedDocs[0]
 
-        if (docsError || !docsData || docsData.length === 0) {
-          setError('No documents found')
-          setLoading(false)
-          return
-        }
+  if (isLoading) {
+    return <Loading message="Fetching analysis data..." />
+  }
 
-        const mostRecentDoc = docsData[0]
-        setDocument(mostRecentDoc)
-
-        // Fetch analysis for this document
-        const { data: analysisData, error: analysisError } = await supabase
-          .from('analyses')
-          .select('id, document_id, summary, action_items')
-          .eq('document_id', mostRecentDoc.id)
-          .limit(1)
-
-        if (!analysisError && analysisData && analysisData.length > 0) {
-          setAnalysis(analysisData[0])
-        }
-      } catch (err) {
-        console.error('Error fetching analysis:', err)
-        setError('Failed to load analysis')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [supabase, router])
-
-  if (loading) {
+  if (!latestDoc) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loading />
-      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-2xl mx-auto text-center py-20"
+      >
+        <FileText size={48} className="text-text-dim mx-auto mb-4" />
+        <h2 className="text-display text-2xl text-white mb-2">No Analysis Available</h2>
+        <p className="text-sm text-text-dim mb-6">
+          Upload and process a document to view AI-powered analysis.
+        </p>
+        <Link href="/dashboard/upload">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="px-6 py-3 rounded-lg bg-accent-cyan text-black font-semibold text-sm inline-flex items-center gap-2"
+            style={{ boxShadow: '0 0 20px rgba(6, 182, 212, 0.15)' }}
+          >
+            Upload Document <ArrowRight size={16} />
+          </motion.button>
+        </Link>
+      </motion.div>
     )
   }
 
-  if (error || !document) {
-    return (
-      <div className="space-y-8">
-        <motion.button
-          onClick={() => router.back()}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="flex items-center gap-2 text-accent-cyan hover:text-accent-white transition-colors mb-4"
-        >
-          <ArrowLeft size={20} />
-          <span>Back</span>
-        </motion.button>
-
-        <GlassCard>
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <AlertCircle size={48} className="text-yellow-400 mb-4" />
-            <h2 className="heading-md text-text-primary mb-2">No analyses available</h2>
-            <p className="text-text-muted">
-              {error || "You haven't uploaded any documents yet."}
-            </p>
-          </div>
-        </GlassCard>
-      </div>
-    )
-  }
-
-  const statusConfig = DOCUMENT_STATUS[document.status?.toUpperCase() as keyof typeof DOCUMENT_STATUS] || DOCUMENT_STATUS.PROCESSING
-  const documentDate = new Date(document.created_at)
+  // Build insight cards from available data
+  const insights = [
+    { icon: CheckCircle2, label: 'Status', value: latestDoc.status.toUpperCase(), color: 'text-accent-emerald', bg: 'rgba(16,185,129,0.08)' },
+    { icon: FileText, label: 'Document', value: latestDoc.fileName, color: 'text-accent-cyan', bg: 'rgba(6,182,212,0.08)' },
+    { icon: AlertTriangle, label: 'Flags', value: latestDoc.status === 'FAILED' ? 'Issues Detected' : 'Clear', color: latestDoc.status === 'FAILED' ? 'text-red-400' : 'text-accent-emerald', bg: latestDoc.status === 'FAILED' ? 'rgba(239,68,68,0.08)' : 'rgba(16,185,129,0.08)' },
+  ]
 
   return (
-    <div className="space-y-8">
-      {/* Back Button */}
-      <motion.button
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        onClick={() => router.back()}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="flex items-center gap-2 text-accent-cyan hover:text-accent-white transition-colors"
-      >
-        <ArrowLeft size={20} />
-        <span>Back to Dashboard</span>
-      </motion.button>
-
-      {/* Page Header */}
-      <motion.div
-        {...getEntranceAnimation()}
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-      >
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <div className="p-3 rounded-lg bg-glass-light">
-              <Zap size={24} className="text-accent-cyan" />
-            </div>
-            <div>
-              <h1 className="heading-md text-text-primary">Latest Analysis</h1>
-              <p className="text-text-secondary text-sm mt-1">
-                {document.file_name}
-              </p>
-            </div>
-          </div>
-
-          <GlassBadge
-            label={statusConfig.label}
-            variant={statusConfig.variant}
-            size="md"
-          />
-        </div>
+    <motion.div variants={container} initial="hidden" animate="show" className="max-w-[1200px]">
+      {/* Header */}
+      <motion.div variants={item} className="mb-8">
+        <h1 className="text-display text-3xl text-white mb-1">Contract Analysis</h1>
+        <p className="text-sm text-text-dim">AI-powered analysis of your most recent document</p>
       </motion.div>
 
-      {/* Content Grid */}
-      <motion.div
-        {...getEntranceAnimation(0.2)}
-        className="grid grid-cols-1 lg:grid-cols-3 gap-6"
-      >
-        {/* Main Content - 2 cols */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Document Info Card */}
-          <motion.div
-            {...getEntranceAnimation(0.3)}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{
-              type: 'spring',
-              stiffness: 100,
-              damping: 15,
-            }}
-          >
-            <GlassCard>
-              <h2 className="heading-sm text-text-primary mb-4">Document Information</h2>
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
-                    Status
-                  </p>
-                  <GlassBadge
-                    label={statusConfig.label}
-                    variant={statusConfig.variant}
-                    size="sm"
-                  />
-                </div>
-
-                <div>
-                  <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
-                    Upload Date
-                  </p>
-                  <p className="text-text-primary font-medium">
-                    {documentDate.toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
-                    File Name
-                  </p>
-                  <p className="text-text-secondary text-sm truncate">{document.file_name}</p>
-                </div>
+      {/* Insight Cards */}
+      <motion.div variants={item} className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        {insights.map((insight, i) => {
+          const Icon = insight.icon
+          return (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 + i * 0.1 }}
+              className="p-5 rounded-xl"
+              style={{
+                background: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(255, 255, 255, 0.06)',
+              }}
+            >
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-3" style={{ background: insight.bg }}>
+                <Icon size={16} className={insight.color} />
               </div>
-            </GlassCard>
-          </motion.div>
+              <p className="text-xs text-text-dim mb-1">{insight.label}</p>
+              <p className="text-sm text-white font-medium truncate">{insight.value}</p>
+            </motion.div>
+          )
+        })}
+      </motion.div>
 
-          {/* AI Analysis Card */}
-          {analysis ? (
-            <motion.div
-              {...getEntranceAnimation(0.4)}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{
-                type: 'spring',
-                stiffness: 100,
-                damping: 15,
-              }}
-            >
-              <GlassCard>
-                <h2 className="heading-sm text-text-primary mb-4">AI Analysis Summary</h2>
-                <p className="text-text-secondary leading-relaxed mb-4">
-                  {analysis.summary}
-                </p>
-              </GlassCard>
-            </motion.div>
-          ) : (
-            <motion.div
-              {...getEntranceAnimation(0.4)}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{
-                type: 'spring',
-                stiffness: 100,
-                damping: 15,
-              }}
-            >
-              <GlassCard>
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <AlertCircle size={40} className="text-yellow-400 mb-4" />
-                  <h3 className="heading-sm text-text-primary mb-2">Analysis Not Available</h3>
-                  <p className="text-text-muted text-sm">
-                    AI analysis is being processed for this document.
-                  </p>
-                </div>
-              </GlassCard>
-            </motion.div>
-          )}
+      {/* Analyzed Documents List */}
+      <motion.div
+        variants={item}
+        className="rounded-xl overflow-hidden"
+        style={{
+          background: 'rgba(255, 255, 255, 0.02)',
+          border: '1px solid rgba(255, 255, 255, 0.06)',
+        }}
+      >
+        <div className="px-6 py-4 border-b border-white/[0.06] flex items-center gap-2">
+          <Sparkles size={14} className="text-accent-cyan" />
+          <h2 className="text-sm font-semibold text-white">Analyzed Documents</h2>
         </div>
-
-        {/* Sidebar - 1 col */}
-        <div className="space-y-6">
-          {/* Action Items Card */}
-          {analysis && Array.isArray(analysis.action_items) && analysis.action_items.length > 0 && (
-            <motion.div
-              {...getEntranceAnimation(0.5)}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{
-                type: 'spring',
-                stiffness: 100,
-                damping: 15,
-              }}
-            >
-              <GlassCard variant="dark">
-                <h3 className="heading-sm text-text-primary mb-4">Action Items</h3>
-                <ul className="space-y-2">
-                  {analysis.action_items.map((item: string, idx: number) => (
-                    <motion.li
-                      key={idx}
-                      initial={{ opacity: 0, x: -10 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      transition={{
-                        type: 'spring',
-                        stiffness: 100,
-                        damping: 15,
-                        delay: idx * 0.1,
-                      }}
-                      viewport={{ once: true }}
-                      className="flex items-start gap-3"
-                    >
-                      <CheckCircle size={16} className="text-accent-cyan mt-1 flex-shrink-0" />
-                      <span className="text-text-secondary text-sm">{item}</span>
-                    </motion.li>
-                  ))}
-                </ul>
-              </GlassCard>
-            </motion.div>
-          )}
+        <div>
+          {analyzedDocs.map((doc) => (
+            <Link key={doc.id} href={`/dashboard/documents/${doc.id}`}>
+              <div className="table-row-glass px-6 py-4 flex items-center justify-between hover:cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center">
+                    <FileText size={14} className="text-text-dim" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-text-secondary font-medium">{doc.fileName}</p>
+                    <p className="text-[11px] text-text-dim">{doc.status}</p>
+                  </div>
+                </div>
+                <ArrowRight size={14} className="text-text-dim" />
+              </div>
+            </Link>
+          ))}
         </div>
       </motion.div>
-    </div>
+    </motion.div>
   )
 }

@@ -3,40 +3,24 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 
-export interface FooterProps {
-  /** Whether to show footer (useful for conditional rendering) */
-  show?: boolean
-}
-
-export const Footer: React.FC<FooterProps> = ({ show = true }) => {
-  if (!show) return null
-
+export const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear()
 
   return (
     <motion.footer
-      initial={{ y: 100 }}
-      whileInView={{ y: 0 }}
-      transition={{ type: 'spring', stiffness: 100, damping: 15 }}
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      transition={{ duration: 0.8, delay: 0.2 }}
       viewport={{ once: true }}
-      className="glass-surface-sm bg-glass-dark border-t border-glass-border py-8 md:py-12 mt-20"
+      className="border-t border-white/[0.06] py-8 mt-12"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          {/* Left: Copyright */}
-          <div className="text-sm text-text-muted">
-            © {currentYear} Claro. All rights reserved.
-          </div>
-
-
-        </div>
-
-        {/* Divider */}
-        <div className="mt-6 pt-6 border-t border-glass-border">
-          <p className="text-xs text-text-muted text-center">
-            Claro — AI-powered legal document intelligence platform
-          </p>
-        </div>
+      <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+        <p className="text-xs text-text-dim tracking-wider">
+          © {currentYear} Claro. All rights reserved.
+        </p>
+        <p className="text-[10px] text-text-dim tracking-widest uppercase">
+          AI-Powered Legal Document Intelligence
+        </p>
       </div>
     </motion.footer>
   )

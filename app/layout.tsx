@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { Playfair_Display, Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
-import { ThemeScript } from './theme-script'
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -18,8 +17,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Claro - AI Document Intelligence',
-  description: 'Transform complex legal documents into actionable insights with advanced AI analysis',
+  title: 'Claro - AI Legal & Document Intelligence',
+  description: 'Enterprise-grade AI platform for parsing, analyzing, and extracting critical insights from legal documents, master lease agreements, tax returns, and corporate insurance policies.',
 }
 
 export default function RootLayout({
@@ -30,29 +29,25 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      className={`dark ${playfair.variable} ${inter.variable}`}
       suppressHydrationWarning
-      className={`${playfair.variable} ${inter.variable}`}
     >
-      <head>
-        <ThemeScript />
-      </head>
-      <body
-        suppressHydrationWarning
-        className="min-h-screen bg-black-base text-brand-text transition-colors duration-300"
-      >
-        {/* Animated gradient blob background */}
-        <div id="gradient-blobs" className="z-glass-bg">
-          <div className="blob blob-1"></div>
-          <div className="blob blob-2"></div>
-          <div className="blob blob-3"></div>
+      <head />
+      <body className="min-h-screen bg-obsidian-void text-text-primary">
+        {/* Layer 0: The Obsidian Terminal Grid */}
+        <div className="obsidian-grid" aria-hidden="true" />
+
+        {/* Layer 1: Quantum Lighting Mesh Gradient Orbs */}
+        <div className="quantum-lighting" aria-hidden="true">
+          <div className="quantum-orb quantum-orb--emerald" />
+          <div className="quantum-orb quantum-orb--cyan" />
+          <div className="quantum-orb quantum-orb--white" />
         </div>
 
-        {/* Main content wrapper with proper z-index */}
-        <div className="z-glass-content relative min-h-screen">
+        {/* Layer 2: Application Content */}
+        <div className="relative z-[1] min-h-screen">
           <Providers>
-            <div className="fade-in-page min-h-screen">
-              {children}
-            </div>
+            {children}
           </Providers>
         </div>
       </body>

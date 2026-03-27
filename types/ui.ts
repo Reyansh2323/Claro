@@ -106,7 +106,7 @@ export interface AnimationConfig {
   type: 'spring' | 'tween'
   stiffness?: number
   damping?: number
-  ease?: string
+  ease?: any
 }
 
 /**

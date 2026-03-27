@@ -1,181 +1,180 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Inbox, FileText } from 'lucide-react'
+import { FileText, Trash2, ExternalLink, Search, MoreHorizontal } from 'lucide-react'
 import { useDocuments } from '@/hooks/useDocuments'
-import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
-import { Badge } from '@/components/shared/Badge'
-import { Loading } from '@/components/shared/Loading'
+import { useDocumentStore } from '@/store/documentStore'
+import { DOCUMENT_STATUS } from '@/lib/constants'
 import { formatDistanceToNow } from 'date-fns'
 
+const container = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.06, delayChildren: 0.2 } },
+}
+const item = {
+  hidden: { opacity: 0, y: 15 },
+  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 100, damping: 18 } },
+}
+
 export default function HistoryPage() {
-  const { documents, isLoading, fetchDocuments, deleteDocument } =
-    useDocuments()
-  const [sortBy, setSortBy] = useState<'date' | 'name'>('date')
+  const { fetchDocuments, deleteDocument, isLoading } = useDocuments()
+  const documents = useDocumentStore((state) => state.documents)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchDocuments()
   }, [fetchDocuments])
 
-  const sortedDocuments = [...documents].sort((a, b) => {
-    if (sortBy === 'date') {
-      const aDate = new Date(a.uploadedAt)
-      const bDate = new Date(b.uploadedAt)
-      return bDate.getTime() - aDate.getTime()
-    } else {
-      return (a.fileName || '').localeCompare(b.fileName || '')
+  const filteredDocs = documents.filter((doc) =>
+    doc.fileName.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  const getStatusBadge = (status: string) => {
+    const configs: Record<string, { dotClass: string; badgeClass: string }> = {
+      PENDING: { dotClass: 'bg-yellow-400', badgeClass: 'badge-warning' },
+      PROCESSING: { dotClass: 'bg-accent-cyan status-dot--processing', badgeClass: 'badge-info' },
+      COMPLETED: { dotClass: 'bg-accent-emerald', badgeClass: 'badge-success' },
+      FAILED: { dotClass: 'bg-red-400', badgeClass: 'badge-error' },
     }
-  })
-
-  const formatUploadedAt = (uploadedAt: string | null | undefined) => {
-    if (!uploadedAt) return 'Unknown upload time'
-    const date = new Date(uploadedAt)
-    if (Number.isNaN(date.getTime())) return 'Unknown upload time'
-    return formatDistanceToNow(date, { addSuffix: true })
-  }
-
-  const formatFileType = (fileType: string | null | undefined) => {
-    if (!fileType) return 'UNKNOWN'
-    return fileType.toString().toUpperCase()
-  }
-
-  const handleDelete = async (documentId: string, fileName: string) => {
-    if (window.confirm(`Delete "${fileName}"?`)) {
-      await deleteDocument(documentId)
-    }
+    const info = DOCUMENT_STATUS[status as keyof typeof DOCUMENT_STATUS]
+    const config = configs[status] || { dotClass: 'bg-text-dim', badgeClass: '' }
+    return { ...config, label: info?.label || status }
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <motion.div variants={container} initial="hidden" animate="show" className="max-w-[1200px]">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-slate-100 mb-2">
-          Document History
-        </h1>
-        <p className="text-gray-600 dark:text-slate-300">
-          View and manage all your analyzed documents
-        </p>
-      </div>
-
-      {/* Sort Controls */}
-      <Card className="mb-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <label className="label">Sort by</label>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as 'date' | 'name')}
-              className="input w-32"
-            >
-              <option value="date">Most Recent</option>
-              <option value="name">File Name</option>
-            </select>
-          </div>
-          <Link href="/dashboard/upload">
-            <Button variant="primary">Upload New Document</Button>
-          </Link>
+      <motion.div variants={item} className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-display text-3xl text-white mb-1">Risk Intelligence</h1>
+          <p className="text-sm text-text-dim">Complete history of processed documents</p>
         </div>
-      </Card>
+      </motion.div>
+
+      {/* Search */}
+      <motion.div variants={item} className="mb-6">
+        <div className="relative max-w-md">
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-dim pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search documents..."
+            className="pl-10"
+          />
+        </div>
+      </motion.div>
 
       {/* Documents List */}
-      {isLoading ? (
-        <Loading message="Loading document history..." />
-      ) : documents.length === 0 ? (
-        <Card className="text-center py-12">
-          <div className="mb-4 flex items-center justify-center text-brand-primary">
-            <Inbox className="h-10 w-10" />
+      <motion.div
+        variants={item}
+        className="rounded-xl overflow-hidden"
+        style={{
+          background: 'rgba(255, 255, 255, 0.02)',
+          border: '1px solid rgba(255, 255, 255, 0.06)',
+        }}
+      >
+        {isLoading ? (
+          <div className="px-6 py-16 text-center">
+            <div className="inline-block w-6 h-6 rounded-full border-2 border-white/10 border-t-accent-emerald animate-spin mb-3" />
+            <p className="text-xs text-text-dim">Loading documents...</p>
           </div>
-          <h2 className="text-2xl font-bold text-brand-text mb-2">
-            No documents yet
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Start by uploading your first document
-          </p>
-          <Link href="/dashboard/upload">
-            <Button variant="primary">Upload Document</Button>
-          </Link>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {sortedDocuments.map((doc) => (
-            <div key={doc.id} className="card">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <FileText className="h-6 w-6 text-brand-primary" />
-                    <div>
-                      <h3 className="font-semibold text-lg text-brand-text">
-                        {doc.fileName}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        {(doc.fileSize / 1024 / 1024).toFixed(2)} MB • Type:{' '}
-                        {formatFileType(doc.fileType)}
-                      </p>
+        ) : filteredDocs.length === 0 ? (
+          <div className="px-6 py-16 text-center">
+            <FileText size={32} className="text-text-dim mx-auto mb-3" />
+            <p className="text-sm text-text-muted mb-1">
+              {searchQuery ? 'No documents match your search' : 'No documents yet'}
+            </p>
+            <p className="text-xs text-text-dim">
+              {searchQuery ? 'Try a different search term' : 'Upload your first document to get started'}
+            </p>
+          </div>
+        ) : (
+          <div>
+            {/* Table Header */}
+            <div className="px-6 py-3 border-b border-white/[0.06] grid grid-cols-12 gap-4">
+              <div className="col-span-5 text-[10px] text-text-dim font-medium tracking-wider uppercase">Document</div>
+              <div className="col-span-2 text-[10px] text-text-dim font-medium tracking-wider uppercase">Status</div>
+              <div className="col-span-3 text-[10px] text-text-dim font-medium tracking-wider uppercase">Date</div>
+              <div className="col-span-2 text-[10px] text-text-dim font-medium tracking-wider uppercase text-right">Actions</div>
+            </div>
+
+            {filteredDocs.map((doc) => {
+              const status = getStatusBadge(doc.status)
+              return (
+                <div key={doc.id} className="table-row-glass px-6 py-3.5 grid grid-cols-12 gap-4 items-center group">
+                  <div className="col-span-5 flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center flex-shrink-0">
+                      <FileText size={14} className="text-text-dim" />
                     </div>
+                    <Link
+                      href={`/dashboard/documents/${doc.id}`}
+                      className="text-sm text-text-secondary hover:text-white transition-colors truncate font-medium"
+                    >
+                      {doc.fileName}
+                    </Link>
                   </div>
 
-                  <div className="flex gap-2 mb-3">
-                    <Badge
-                      label={doc.status}
-                      variant={
-                        doc.status === 'COMPLETED'
-                          ? 'success'
-                          : doc.status === 'PROCESSING'
-                            ? 'info'
-                            : doc.status === 'FAILED'
-                              ? 'error'
-                              : 'warning'
-                      }
-                      size="sm"
-                    />
-                    {doc.tags && doc.tags.length > 0 && (
-                      <div className="flex gap-1">
-                        {doc.tags.map((tag) => (
-                          <Badge
-                            key={tag.id}
-                            label={tag.name}
-                            variant="info"
-                            size="sm"
-                          />
-                        ))}
-                      </div>
+                  <div className="col-span-2">
+                    <span className={`badge-obsidian ${status.badgeClass} text-[10px]`}>
+                      <span className={`status-dot ${status.dotClass}`} />
+                      {status.label}
+                    </span>
+                  </div>
+
+                  <div className="col-span-3">
+                    <span className="text-xs text-text-dim">
+                      {doc.uploadedAt
+                        ? formatDistanceToNow(new Date(doc.uploadedAt), { addSuffix: true })
+                        : 'Unknown'}
+                    </span>
+                  </div>
+
+                  <div className="col-span-2 flex justify-end relative">
+                    <button
+                      onClick={() => setMenuOpenId(menuOpenId === doc.id ? null : doc.id)}
+                      className="p-1.5 rounded-md text-text-dim hover:text-text-secondary hover:bg-white/[0.04] transition-all opacity-0 group-hover:opacity-100"
+                    >
+                      <MoreHorizontal size={14} />
+                    </button>
+                    {menuOpenId === doc.id && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="absolute right-0 top-8 w-36 rounded-lg py-1 z-50"
+                        style={{
+                          background: 'rgba(10, 10, 10, 0.95)',
+                          border: '1px solid rgba(255, 255, 255, 0.10)',
+                          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                        }}
+                      >
+                        <Link
+                          href={`/dashboard/documents/${doc.id}`}
+                          className="flex items-center gap-2 px-3 py-1.5 text-xs text-text-secondary hover:text-white hover:bg-white/[0.04] transition-colors"
+                        >
+                          <ExternalLink size={12} /> View Details
+                        </Link>
+                        <button
+                          onClick={async () => {
+                            await deleteDocument(doc.id)
+                            setMenuOpenId(null)
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/10 transition-colors"
+                        >
+                          <Trash2 size={12} /> Delete
+                        </button>
+                      </motion.div>
                     )}
                   </div>
-
-                  <p className="text-sm text-gray-500">
-                    Uploaded {formatUploadedAt(doc.uploadedAt)}
-                  </p>
                 </div>
-
-                <div className="flex gap-2">
-                  {doc.status === 'COMPLETED' && (
-                    <Link href={`/dashboard/documents/${doc.id}`}>
-                      <Button variant="primary" size="sm">
-                        View Analysis
-                      </Button>
-                    </Link>
-                  )}
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => handleDelete(doc.id, doc.fileName)}
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </div>
-
-              {doc.errorMessage && (
-                <div className="mt-3 p-3 bg-red-50 rounded border border-red-200">
-                  <p className="text-red-800 text-sm">{doc.errorMessage}</p>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+              )
+            })}
+          </div>
+        )}
+      </motion.div>
+    </motion.div>
   )
 }

@@ -2,16 +2,29 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { GlassCard } from '@/components/ui/GlassCard'
-import { GlassBadge } from '@/components/ui/GlassBadge'
-import { GlassButton } from '@/components/ui/GlassButton'
-import { ArrowLeft, FileText, AlertCircle, CheckCircle } from 'lucide-react'
+import {
+  ArrowLeft,
+  FileText,
+  AlertCircle,
+  CheckCircle,
+  Download,
+  Share2,
+  Archive,
+} from 'lucide-react'
 import {
   MOCK_DOCUMENTS,
   DOCUMENT_STATUS,
   MOCK_AI_INSIGHTS,
 } from '@/lib/constants'
-import { getEntranceAnimation } from '@/hooks/useAnimations'
+
+const container = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.15 } },
+}
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 100, damping: 18 } },
+}
 
 export default function DocumentDetailPage() {
   const params = useParams()
@@ -26,250 +39,216 @@ export default function DocumentDetailPage() {
 
   if (!document || !statusConfig) {
     return (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <motion.button
           onClick={() => router.back()}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="flex items-center gap-2 text-accent-cyan hover:text-accent-white transition-colors mb-4"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="flex items-center gap-2 text-text-dim hover:text-white transition-colors text-sm"
         >
-          <ArrowLeft size={20} />
-          <span>Back</span>
+          <ArrowLeft size={16} />
+          Back
         </motion.button>
 
-        <GlassCard>
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <AlertCircle size={48} className="text-red-400 mb-4" />
-            <h2 className="heading-md text-red-400 mb-2">Document Not Found</h2>
-            <p className="text-text-muted">
-              The document you&apos;re looking for doesn&apos;t exist.
-            </p>
-          </div>
-        </GlassCard>
+        <div
+          className="p-12 rounded-xl text-center"
+          style={{
+            background: 'rgba(255, 255, 255, 0.02)',
+            border: '1px solid rgba(255, 255, 255, 0.06)',
+          }}
+        >
+          <AlertCircle size={40} className="text-red-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-white mb-2">Document Not Found</h2>
+          <p className="text-sm text-text-dim">
+            The document you&apos;re looking for doesn&apos;t exist.
+          </p>
+        </div>
       </div>
     )
   }
 
   const documentDate = new Date(document.date)
 
+  const riskConfig: Record<string, { dot: string; text: string; label: string }> = {
+    low: { dot: 'bg-accent-emerald', text: 'text-accent-emerald', label: 'Low' },
+    medium: { dot: 'bg-yellow-400', text: 'text-yellow-400', label: 'Medium' },
+    high: { dot: 'bg-red-400', text: 'text-red-400', label: 'High' },
+  }
+  const risk = riskConfig[document.riskLevel] || riskConfig.low
+
+  const statusBadgeColors: Record<string, string> = {
+    success: 'badge-success',
+    info: 'badge-info',
+    warning: 'badge-warning',
+    error: 'badge-error',
+    default: '',
+  }
+
   return (
-    <div className="space-y-8">
+    <motion.div variants={container} initial="hidden" animate="show" className="space-y-6 max-w-[1200px]">
       {/* Back Button */}
       <motion.button
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
+        variants={item}
         onClick={() => router.back()}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="flex items-center gap-2 text-accent-cyan hover:text-accent-white transition-colors"
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className="flex items-center gap-2 text-text-dim hover:text-white transition-colors text-sm"
       >
-        <ArrowLeft size={20} />
-        <span>Back to Dashboard</span>
+        <ArrowLeft size={16} />
+        Back to Dashboard
       </motion.button>
 
       {/* Page Header */}
-      <motion.div
-        {...getEntranceAnimation()}
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-      >
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <div className="p-3 rounded-lg bg-glass-light">
-              <FileText size={24} className="text-accent-cyan" />
-            </div>
-            <div>
-              <h1 className="heading-md text-text-primary">{document.name}</h1>
-              <p className="text-text-secondary text-sm mt-1">
-                Uploaded {documentDate.toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </p>
-            </div>
+      <motion.div variants={item} className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <div
+            className="p-3 rounded-lg flex items-center justify-center"
+            style={{ background: 'rgba(6, 182, 212, 0.08)' }}
+          >
+            <FileText size={22} className="text-accent-cyan" />
           </div>
-
-          <GlassBadge
-            label={statusConfig.label}
-            variant={statusConfig.variant}
-            size="md"
-          />
+          <div>
+            <h1 className="text-display text-2xl text-white">{document.name}</h1>
+            <p className="text-sm text-text-dim mt-1">
+              Uploaded {documentDate.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </p>
+          </div>
         </div>
+        <span className={`badge-obsidian ${statusBadgeColors[statusConfig.variant] || ''} text-xs`}>
+          {statusConfig.label}
+        </span>
       </motion.div>
 
       {/* Content Grid */}
-      <motion.div
-        {...getEntranceAnimation(0.2)}
-        className="grid grid-cols-1 lg:grid-cols-3 gap-6"
-      >
-        {/* Main Content - 2 cols */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content — 2 cols */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Document Info Card */}
+          {/* Document Info */}
           <motion.div
-            {...getEntranceAnimation(0.3)}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{
-              type: 'spring',
-              stiffness: 100,
-              damping: 15,
+            variants={item}
+            className="p-6 rounded-xl"
+            style={{
+              background: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
             }}
           >
-            <GlassCard>
-              <h2 className="heading-sm text-text-primary mb-4">Document Information</h2>
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
-                    Status
-                  </p>
-                  <GlassBadge
-                    label={statusConfig.label}
-                    variant={statusConfig.variant}
-                    size="sm"
-                  />
-                </div>
-
-                <div>
-                  <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
-                    Upload Date
-                  </p>
-                  <p className="text-text-primary font-medium">
-                    {documentDate.toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
-                    File Name
-                  </p>
-                  <p className="text-text-secondary text-sm truncate">{document.name}</p>
-                </div>
-
-                <div>
-                  <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
-                    Risk Level
-                  </p>
-                  <div className="flex items-center gap-2">
-                    {document.riskLevel === 'low' && (
-                      <>
-                        <div className="w-2 h-2 rounded-full bg-accent-emerald"></div>
-                        <span className="text-accent-emerald font-medium text-sm">Low</span>
-                      </>
-                    )}
-                    {document.riskLevel === 'medium' && (
-                      <>
-                        <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
-                        <span className="text-yellow-400 font-medium text-sm">Medium</span>
-                      </>
-                    )}
-                    {document.riskLevel === 'high' && (
-                      <>
-                        <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                        <span className="text-red-400 font-medium text-sm">High</span>
-                      </>
-                    )}
-                  </div>
+            <h2 className="text-sm font-semibold text-white mb-5">Document Information</h2>
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <p className="text-[10px] text-text-dim font-medium tracking-wider uppercase mb-1.5">Status</p>
+                <span className={`badge-obsidian ${statusBadgeColors[statusConfig.variant] || ''} text-[10px]`}>
+                  {statusConfig.label}
+                </span>
+              </div>
+              <div>
+                <p className="text-[10px] text-text-dim font-medium tracking-wider uppercase mb-1.5">Upload Date</p>
+                <p className="text-sm text-white font-medium">
+                  {documentDate.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] text-text-dim font-medium tracking-wider uppercase mb-1.5">File Name</p>
+                <p className="text-sm text-text-secondary truncate">{document.name}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-text-dim font-medium tracking-wider uppercase mb-1.5">Risk Level</p>
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${risk.dot}`} />
+                  <span className={`${risk.text} font-medium text-sm`}>{risk.label}</span>
                 </div>
               </div>
-            </GlassCard>
+            </div>
           </motion.div>
 
-          {/* AI Analysis Card */}
+          {/* AI Analysis */}
           <motion.div
-            {...getEntranceAnimation(0.4)}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{
-              type: 'spring',
-              stiffness: 100,
-              damping: 15,
+            variants={item}
+            className="p-6 rounded-xl"
+            style={{
+              background: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
             }}
           >
-            <GlassCard>
-              <h2 className="heading-sm text-text-primary mb-4">AI Analysis Summary</h2>
-              <p className="text-text-secondary leading-relaxed mb-4">
-                {MOCK_AI_INSIGHTS.summary}
-              </p>
-            </GlassCard>
+            <h2 className="text-sm font-semibold text-white mb-4">AI Analysis Summary</h2>
+            <p className="text-sm text-text-muted leading-relaxed">
+              {MOCK_AI_INSIGHTS.summary}
+            </p>
           </motion.div>
         </div>
 
-        {/* Sidebar - 1 col */}
+        {/* Sidebar — 1 col */}
         <div className="space-y-6">
-          {/* Action Items Card */}
+          {/* Action Items */}
           <motion.div
-            {...getEntranceAnimation(0.5)}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{
-              type: 'spring',
-              stiffness: 100,
-              damping: 15,
+            variants={item}
+            className="p-6 rounded-xl"
+            style={{
+              background: 'rgba(0, 0, 0, 0.30)',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
             }}
           >
-            <GlassCard variant="dark">
-              <h3 className="heading-sm text-text-primary mb-4">Action Items</h3>
-              <ul className="space-y-2">
-                {MOCK_AI_INSIGHTS.actionItems.map((item, idx) => (
-                  <motion.li
-                    key={idx}
-                    initial={{ opacity: 0, x: -10 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{
-                      type: 'spring',
-                      stiffness: 100,
-                      damping: 15,
-                      delay: idx * 0.1,
-                    }}
-                    viewport={{ once: true }}
-                    className="flex items-start gap -3"
-                  >
-                    <CheckCircle size={16} className="text-accent-cyan mt-1 flex-shrink-0" />
-                    <span className="text-text-secondary text-sm">{item}</span>
-                  </motion.li>
-                ))}
-              </ul>
-            </GlassCard>
+            <h3 className="text-sm font-semibold text-white mb-4">Action Items</h3>
+            <ul className="space-y-3">
+              {MOCK_AI_INSIGHTS.actionItems.map((actionItem, idx) => (
+                <motion.li
+                  key={idx}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 + idx * 0.08 }}
+                  className="flex items-start gap-2.5"
+                >
+                  <CheckCircle size={14} className="text-accent-cyan mt-0.5 flex-shrink-0" />
+                  <span className="text-xs text-text-muted leading-relaxed">{actionItem}</span>
+                </motion.li>
+              ))}
+            </ul>
           </motion.div>
 
           {/* Quick Actions */}
           <motion.div
-            {...getEntranceAnimation(0.6)}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{
-              type: 'spring',
-              stiffness: 100,
-              damping: 15,
+            variants={item}
+            className="p-6 rounded-xl"
+            style={{
+              background: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
             }}
           >
-            <GlassCard>
-              <h3 className="heading-sm text-text-primary mb-4">Quick Actions</h3>
-              <div className="space-y-2">
-                <GlassButton variant="secondary" fullWidth size="sm">
-                  Download Report
-                </GlassButton>
-                <GlassButton variant="secondary" fullWidth size="sm">
-                  Share Document
-                </GlassButton>
-                <GlassButton variant="secondary" fullWidth size="sm" >
-                  Archive
-                </GlassButton>
-              </div>
-            </GlassCard>
+            <h3 className="text-sm font-semibold text-white mb-4">Quick Actions</h3>
+            <div className="space-y-2">
+              {[
+                { icon: Download, label: 'Download Report' },
+                { icon: Share2, label: 'Share Document' },
+                { icon: Archive, label: 'Archive' },
+              ].map((action, i) => {
+                const Icon = action.icon
+                return (
+                  <motion.button
+                    key={i}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    className="w-full py-2.5 px-4 rounded-lg text-xs font-medium text-text-secondary flex items-center gap-2 transition-all"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      border: '1px solid rgba(255, 255, 255, 0.06)',
+                    }}
+                  >
+                    <Icon size={14} />
+                    {action.label}
+                  </motion.button>
+                )
+              })}
+            </div>
           </motion.div>
         </div>
-      </motion.div>
-    </div>
+      </div>
+    </motion.div>
   )
 }

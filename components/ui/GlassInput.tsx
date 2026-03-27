@@ -1,24 +1,13 @@
 'use client'
 
-import React, { forwardRef } from 'react'
-import { LucideIcon } from 'lucide-react'
+import { forwardRef, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { clsx, type ClassValue } from 'clsx'
+import { Eye, EyeOff, AlertCircle } from 'lucide-react'
+import type { GlassInputProps } from '@/types/ui'
 
-export interface GlassInputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
-  /** Label text displayed above input */
-  label?: string
-  /** Leading icon from Lucide */
-  icon?: LucideIcon
-  /** Trailing icon from Lucide */
-  iconTrailing?: LucideIcon
-  /** Error message displayed below input */
-  error?: string
-  /** Helper text displayed below input */
-  helperText?: string
-  /** Input variant: 'default' | 'subtle' */
-  variant?: 'default' | 'subtle'
-  /** Full width */
-  fullWidth?: boolean
+export function cn(...inputs: ClassValue[]) {
+  return clsx(inputs)
 }
 
 export const GlassInput = forwardRef<HTMLInputElement, GlassInputProps>(
@@ -30,66 +19,88 @@ export const GlassInput = forwardRef<HTMLInputElement, GlassInputProps>(
       error,
       helperText,
       variant = 'default',
-      fullWidth = true,
+      fullWidth = false,
+      type = 'text',
       className = '',
-      ...props
+      ...rest
     },
     ref
   ) => {
-    const baseClasses =
-      'w-full px-4 py-2 rounded-lg font-medium transition-all duration-300 border backdrop-blur-2xl'
-
-    const variantClasses = {
-      default:
-        'bg-glass-dark border-glass-border text-text-primary placeholder-text-muted focus:border-glass-border-hover focus:shadow-glass-glow',
-      subtle:
-        'bg-glass-light border-glass-border text-text-primary placeholder-text-muted focus:bg-glass-lighter focus:border-glass-border-hover',
-    }
-
-    const errorClass = error
-      ? 'border-red-500/50 focus:border-red-500 focus:shadow-none'
-      : ''
-
-    const widthClass = fullWidth ? 'w-full' : ''
-
-    const containerClasses = `flex flex-col ${widthClass}`
-
-    const inputContainerClasses = 'relative flex items-center'
-
-    const combinedClasses = `${baseClasses} ${variantClasses[variant]} ${errorClass} ${className}`
+    const [showPassword, setShowPassword] = useState(false)
+    const isPassword = type === 'password'
+    const inputType = isPassword && showPassword ? 'text' : type
 
     return (
-      <div className={containerClasses}>
+      <div className={cn('flex flex-col space-y-1.5', fullWidth ? 'w-full' : '', className)}>
+        {/* Label */}
         {label && (
-          <label className="text-sm-label mb-2 block">{label}</label>
+          <label className="text-xs text-text-dim font-medium tracking-wider uppercase pl-1">
+            {label}
+          </label>
         )}
 
-        <div className={inputContainerClasses}>
+        {/* Input Wrapper */}
+        <div className="relative flex items-center">
           {Icon && (
             <Icon
-              size={18}
-              className="absolute left-3 text-text-muted pointer-events-none"
+              size={16}
+              className="absolute left-3.5 text-text-dim pointer-events-none"
             />
           )}
 
           <input
             ref={ref}
-            className={`${combinedClasses} ${Icon ? 'pl-10' : ''} ${IconTrailing ? 'pr-10' : ''}`}
-            {...props}
+            type={inputType}
+            className={cn(
+              variant === 'subtle' 
+                ? 'bg-transparent border-b border-white/[0.1] rounded-none px-0 focus:border-accent-cyan outline-none shadow-none focus:shadow-none' 
+                : '', 
+              Icon ? 'pl-10' : '',
+              (isPassword || IconTrailing) ? 'pr-10' : '',
+              error ? 'border-red-500/50 focus:border-red-500 focus:shadow-[0_0_20px_rgba(239,68,68,0.1)]' : ''
+            )}
+            {...rest}
           />
 
-          {IconTrailing && (
+          {/* Trailing Elements */}
+          {isPassword ? (
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3.5 text-text-dim hover:text-text-secondary transition-colors"
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          ) : IconTrailing ? (
             <IconTrailing
-              size={18}
-              className="absolute right-3 text-text-muted pointer-events-none"
+              size={16}
+              className="absolute right-3.5 text-text-dim pointer-events-none"
             />
-          )}
+          ) : null}
         </div>
 
-        {error && <p className="text-sm text-red-400 mt-1">{error}</p>}
-        {helperText && !error && (
-          <p className="text-sm text-text-muted mt-1">{helperText}</p>
-        )}
+        {/* Helper & Error Text */}
+        <AnimatePresence>
+          {error ? (
+            <motion.div
+              initial={{ opacity: 0, height: 0, y: -5 }}
+              animate={{ opacity: 1, height: 'auto', y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -5 }}
+              className="flex items-center gap-1.5 text-red-400 text-xs pl-1"
+            >
+              <AlertCircle size={12} />
+              <span>{error}</span>
+            </motion.div>
+          ) : helperText ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-text-dim text-[11px] pl-1"
+            >
+              {helperText}
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
       </div>
     )
   }

@@ -1,438 +1,379 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { GlassCard } from '@/components/ui/GlassCard'
-import { GlassBadge } from '@/components/ui/GlassBadge'
-import { Loading } from '@/components/shared/Loading'
+import Link from 'next/link'
 import {
-  BarChart3,
-  AlertTriangle,
-  Calendar,
-  TrendingUp,
-  TrendingDown,
   FileText,
-  Eye,
+  ShieldAlert,
+  DollarSign,
+  Clock,
+  Upload,
+  ArrowRight,
+  MoreHorizontal,
+  Trash2,
+  ExternalLink,
+  Activity,
+  Sparkles,
 } from 'lucide-react'
-import {
-  MOCK_KPI_DATA,
-  DOCUMENT_STATUS,
-} from '@/lib/constants'
-import { createClient } from '@/lib/supabaseBrowser'
-import { getEntranceAnimation, getStaggerContainerAnimation } from '@/hooks/useAnimations'
+import { useDocuments } from '@/hooks/useDocuments'
+import { useDocumentStore } from '@/store/documentStore'
+import { DOCUMENT_STATUS } from '@/lib/constants'
+import { formatDistanceToNow } from 'date-fns'
 
-interface DocumentRow {
-  id: string
-  file_name: string
-  status: string
-  created_at: string
-  user_id: string
+const container = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.2 } },
 }
 
-interface AnalysisRow {
-  id: string
-  document_id: string
-  summary: string
-  action_items: string[]
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 100, damping: 18 } },
 }
 
 export default function DashboardPage() {
-  const [selectedDocId, setSelectedDocId] = useState<string>('')
-  const [documents, setDocuments] = useState<DocumentRow[]>([])
-  const [analyses, setAnalyses] = useState<Map<string, AnalysisRow>>(new Map())
-  const [loading, setLoading] = useState(true)
-  const supabase = createClient()
+  const { fetchDocuments, deleteDocument, isLoading } = useDocuments()
+  const documents = useDocumentStore((state) => state.documents)
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
 
-  // Fetch documents on mount
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Get logged-in user
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
+    fetchDocuments()
+  }, [fetchDocuments])
 
-        // Fetch documents for this user
-        const { data: docsData, error: docsError } = await supabase
-          .from('documents')
-          .select('id, file_name, status, created_at, user_id')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
+  // KPI calculations from real data
+  const totalDocs = documents.length
+  const criticalFlags = documents.filter((d) => d.status === 'FAILED').length
+  const processedDocs = documents.filter((d) => d.status === 'COMPLETED').length
+  const pendingDocs = documents.filter((d) => d.status === 'PROCESSING' || d.status === 'PENDING').length
 
-        if (docsError) {
-          console.error('Error fetching documents:', docsError)
-          setDocuments([])
-        } else {
-          setDocuments(docsData || [])
-          
-          // Set first document as selected
-          if (docsData && docsData.length > 0) {
-            setSelectedDocId(docsData[0].id)
-          }
-
-          // Fetch analyses for all documents
-          if (docsData && docsData.length > 0) {
-            const docIds = docsData.map(d => d.id)
-            const { data: analysesData, error: analysesError } = await supabase
-              .from('analyses')
-              .select('id, document_id, summary, action_items')
-              .in('document_id', docIds)
-
-            if (!analysesError && analysesData) {
-              const analysisMap = new Map()
-              analysesData.forEach(a => {
-                analysisMap.set(a.document_id, a)
-              })
-              setAnalyses(analysisMap)
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error in fetchData:', error)
-        setDocuments([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [supabase])
-
-  const selectedDoc = documents.find((d) => d.id === selectedDocId)
-  const selectedDocAnalysis = selectedDoc ? analyses.get(selectedDoc.id) : null
-
-  const kpiCards = [
+  const KPI_CARDS = [
     {
-      id: 'documents',
+      label: 'Documents Processed',
+      value: totalDocs.toString(),
+      delta: `${processedDocs} analyzed`,
       icon: FileText,
-      label: MOCK_KPI_DATA.documentsAnalyzed.label,
-      value: MOCK_KPI_DATA.documentsAnalyzed.value,
-      trend: MOCK_KPI_DATA.documentsAnalyzed.trend,
       color: 'text-accent-cyan',
+      glowColor: 'rgba(6, 182, 212, 0.08)',
+      borderColor: 'rgba(6, 182, 212, 0.15)',
     },
     {
-      id: 'alerts',
-      icon: AlertTriangle,
-      label: MOCK_KPI_DATA.criticalAlerts.label,
-      value: MOCK_KPI_DATA.criticalAlerts.value,
-      trend: MOCK_KPI_DATA.criticalAlerts.trend,
-      color: 'text-red-400',
+      label: 'Critical Risks',
+      value: criticalFlags.toString(),
+      delta: 'Flagged items',
+      icon: ShieldAlert,
+      color: criticalFlags > 0 ? 'text-red-400' : 'text-accent-emerald',
+      glowColor: criticalFlags > 0 ? 'rgba(239, 68, 68, 0.08)' : 'rgba(16, 185, 129, 0.08)',
+      borderColor: criticalFlags > 0 ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
     },
     {
-      id: 'deadlines',
-      icon: Calendar,
-      label: MOCK_KPI_DATA.pendingDeadlines.label,
-      value: MOCK_KPI_DATA.pendingDeadlines.value,
-      trend: MOCK_KPI_DATA.pendingDeadlines.trend,
+      label: 'Financial Liability',
+      value: '$0',
+      delta: 'Extracted value',
+      icon: DollarSign,
       color: 'text-yellow-400',
+      glowColor: 'rgba(245, 158, 11, 0.08)',
+      borderColor: 'rgba(245, 158, 11, 0.15)',
+    },
+    {
+      label: 'Pending Deadlines',
+      value: pendingDocs.toString(),
+      delta: 'Awaiting review',
+      icon: Clock,
+      color: 'text-purple-400',
+      glowColor: 'rgba(147, 51, 234, 0.08)',
+      borderColor: 'rgba(147, 51, 234, 0.15)',
     },
   ]
 
+  const getStatusConfig = (status: string) => {
+    const statusInfo = DOCUMENT_STATUS[status as keyof typeof DOCUMENT_STATUS]
+    if (!statusInfo) return { dotClass: 'bg-text-dim', label: status, badgeClass: '' }
+
+    const configs: Record<string, { dotClass: string; badgeClass: string }> = {
+      PENDING: { dotClass: 'bg-yellow-400', badgeClass: 'badge-warning' },
+      PROCESSING: { dotClass: 'bg-accent-cyan status-dot--processing', badgeClass: 'badge-info' },
+      COMPLETED: { dotClass: 'bg-accent-emerald', badgeClass: 'badge-success' },
+      FAILED: { dotClass: 'bg-red-400', badgeClass: 'badge-error' },
+    }
+
+    const config = configs[status] || { dotClass: 'bg-text-dim', badgeClass: '' }
+    return { ...config, label: statusInfo.label }
+  }
+
+  const handleDelete = async (docId: string) => {
+    try {
+      await deleteDocument(docId)
+      setMenuOpenId(null)
+    } catch (error) {
+      console.error('Failed to delete document:', error)
+    }
+  }
+
   return (
-    <div className="space-y-8">
+    <motion.div
+      variants={container}
+      initial="hidden"
+      animate="show"
+      className="space-y-8 max-w-[1400px]"
+    >
       {/* Page Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-      >
-        <h1 className="heading-md text-text-primary mb-2">Dashboard</h1>
-        <p className="text-text-secondary">Monitor your legal documents and insights at a glance</p>
+      <motion.div variants={item} className="flex items-center justify-between">
+        <div>
+          <h1 className="text-display text-3xl text-white mb-1">Command Center</h1>
+          <p className="text-sm text-text-dim">Real-time overview of your document intelligence pipeline</p>
+        </div>
+        <Link href="/dashboard/upload">
+          <motion.button
+            whileHover={{ scale: 1.02, y: -1 }}
+            whileTap={{ scale: 0.98 }}
+            className="hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-lg bg-accent-cyan text-black text-sm font-semibold transition-all"
+            style={{ boxShadow: '0 0 20px rgba(6, 182, 212, 0.15)' }}
+          >
+            <Upload size={16} />
+            Upload Document
+          </motion.button>
+        </Link>
       </motion.div>
 
-      {/* KPI Cards Section */}
-      <motion.div
-        {...getStaggerContainerAnimation()}
-        className="grid grid-cols-1 md:grid-cols-3 gap-6"
-      >
-        {kpiCards.map((card, idx) => {
-          const Icon = card.icon
-          const isTrendingUp = card.trend >= 0
-
+      {/* KPI Matrix */}
+      <motion.div variants={item} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {KPI_CARDS.map((kpi, index) => {
+          const Icon = kpi.icon
           return (
             <motion.div
-              key={card.id}
-              {...getEntranceAnimation(idx)}
-              viewport={{ once: true, margin: '0px 0px -100px 0px' }}
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              whileHover={{ scale: 1.02, y: -4 }}
-              transition={{
-                type: 'spring',
-                stiffness: 100,
-                damping: 15,
+              key={kpi.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 100, damping: 18, delay: 0.3 + index * 0.08 }}
+              whileHover={{ y: -3, scale: 1.01 }}
+              className="relative p-5 rounded-xl transition-all duration-300 group cursor-default"
+              style={{
+                background: 'rgba(255, 255, 255, 0.02)',
+                border: `1px solid ${kpi.borderColor}`,
+                boxShadow: `inset 0 1px 0 rgba(255,255,255,0.04), 0 4px 24px ${kpi.glowColor}`,
               }}
             >
-              <GlassCard variant="default" hover>
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`p-3 rounded-lg bg-glass-light ${card.color}`}>
-                    <Icon size={24} />
-                  </div>
-                  <div
-                    className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${
-                      isTrendingUp
-                        ? 'text-accent-emerald bg-emerald-500/10'
-                        : 'text-red-400 bg-red-500/10'
-                    }`}
-                  >
-                    {isTrendingUp && <TrendingUp size={14} />}
-                    {!isTrendingUp && <TrendingDown size={14} />}
-                    <span>{Math.abs(card.trend)}%</span>
-                  </div>
+              <div className="flex items-start justify-between mb-3">
+                <div
+                  className="w-9 h-9 rounded-lg flex items-center justify-center"
+                  style={{ background: kpi.glowColor }}
+                >
+                  <Icon size={18} className={kpi.color} />
                 </div>
-
-                <p className="text-text-muted text-sm mb-2">{card.label}</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-bold text-text-primary">
-                    {card.value}
-                  </span>
-                  <span className="text-text-muted text-sm">this month</span>
-                </div>
-              </GlassCard>
+              </div>
+              <p className="text-3xl font-bold text-white mb-1 tracking-tight">{kpi.value}</p>
+              <p className="text-xs text-text-dim font-medium">{kpi.label}</p>
+              <p className="text-[10px] text-text-dim mt-1">{kpi.delta}</p>
             </motion.div>
           )
         })}
       </motion.div>
 
-      {/* Main Content Grid: Table + AI Panel */}
-      <motion.div
-        {...getStaggerContainerAnimation()}
-        className="grid grid-cols-1 lg:grid-cols-3 gap-6"
-      >
-        {/* Documents Table Section - 2 columns */}
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Documents Table — 2 columns */}
         <motion.div
-          {...getEntranceAnimation(0)}
-          className="lg:col-span-2"
-          viewport={{ once: true, margin: '0px 0px -100px 0px' }}
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-          whileInView={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{
-            type: 'spring',
-            stiffness: 100,
-            damping: 15,
+          variants={item}
+          className="lg:col-span-2 rounded-xl overflow-hidden"
+          style={{
+            background: 'rgba(255, 255, 255, 0.02)',
+            border: '1px solid rgba(255, 255, 255, 0.06)',
           }}
         >
-          <GlassCard variant="default">
-            {/* Table Header */}
-            <div className="mb-6">
-              <h2 className="heading-sm text-text-primary mb-1">Recent Documents</h2>
-              <p className="text-text-muted text-sm">
-                {documents.length} documents in your library
-              </p>
+          {/* Table Header */}
+          <div className="px-6 py-4 border-b border-white/[0.06] flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-white tracking-wide">Recent Documents</h2>
+            <Link
+              href="/dashboard/history"
+              className="text-xs text-text-dim hover:text-text-secondary transition-colors flex items-center gap-1"
+            >
+              View All <ArrowRight size={12} />
+            </Link>
+          </div>
+
+          {/* Table Body */}
+          {isLoading ? (
+            <div className="px-6 py-16 text-center">
+              <div className="inline-block w-6 h-6 rounded-full border-2 border-white/10 border-t-accent-emerald animate-spin mb-3" />
+              <p className="text-xs text-text-dim">Loading documents...</p>
             </div>
-
-            {/* Loading State */}
-            {loading && (
-              <div className="flex items-center justify-center py-8">
-                <Loading />
-              </div>
-            )}
-
-            {/* Empty State */}
-            {!loading && documents.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <FileText size={40} className="text-glass-border mb-4" />
-                <p className="text-text-secondary mb-2">No documents yet.</p>
-                <p className="text-text-muted text-sm">Upload your first document to get started.</p>
-              </div>
-            )}
-
-            {/* Documents Table */}
-            {!loading && documents.length > 0 && (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-glass-border">
-                      <th className="px-4 py-3 text-left text-text-muted font-semibold">
-                        Document
-                      </th>
-                      <th className="px-4 py-3 text-left text-text-muted font-semibold">
-                        Status
-                      </th>
-                      <th className="px-4 py-3 text-left text-text-muted font-semibold">
-                        Date
-                      </th>
-                      <th className="px-4 py-3 text-center text-text-muted font-semibold">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-glass-border">
-                    {documents.map((doc, idx) => {
-                      const statusKey = doc.status?.toUpperCase() || 'PROCESSING'
-                      const statusConfig = DOCUMENT_STATUS[statusKey as keyof typeof DOCUMENT_STATUS] || DOCUMENT_STATUS.PROCESSING
-                      const isSelected = selectedDocId === doc.id
-
-                      return (
-                        <motion.tr
-                          key={doc.id}
-                          initial={{ opacity: 0, x: -10 }}
-                          whileInView={{ opacity: 1, x: 0 }}
-                          transition={{
-                            type: 'spring',
-                            stiffness: 100,
-                            damping: 15,
-                            delay: idx * 0.05,
-                          }}
-                          viewport={{ once: true }}
-                          className={`hover:bg-glass-light transition-colors cursor-pointer ${
-                            isSelected ? 'bg-glass-light' : ''
-                          }`}
-                          onClick={() => setSelectedDocId(doc.id)}
+          ) : documents.length === 0 ? (
+            <div className="px-6 py-16 text-center">
+              <FileText size={32} className="text-text-dim mx-auto mb-3" />
+              <p className="text-sm text-text-muted mb-1">No documents yet</p>
+              <p className="text-xs text-text-dim">Upload your first document to get started</p>
+            </div>
+          ) : (
+            <div>
+              {documents.slice(0, 8).map((doc) => {
+                const statusConfig = getStatusConfig(doc.status)
+                return (
+                  <div
+                    key={doc.id}
+                    className="table-row-glass px-6 py-3.5 flex items-center justify-between group"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center flex-shrink-0">
+                        <FileText size={14} className="text-text-dim" />
+                      </div>
+                      <div className="min-w-0">
+                        <Link
+                          href={`/dashboard/documents/${doc.id}`}
+                          className="text-sm text-text-secondary hover:text-white transition-colors truncate block font-medium"
                         >
-                          {/* Document Name */}
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              <FileText size={16} className="text-text-muted" />
-                              <span className="text-text-primary truncate font-medium">
-                                {doc.file_name}
-                              </span>
-                            </div>
-                          </td>
+                          {doc.fileName}
+                        </Link>
+                        <p className="text-[11px] text-text-dim">
+                          {doc.uploadedAt
+                            ? formatDistanceToNow(new Date(doc.uploadedAt), { addSuffix: true })
+                            : 'Unknown date'}
+                        </p>
+                      </div>
+                    </div>
 
-                          {/* Status Badge */}
-                          <td className="px-4 py-3">
-                            <GlassBadge
-                              label={statusConfig.label}
-                              variant={statusConfig.variant}
-                              size="sm"
-                            />
-                          </td>
+                    <div className="flex items-center gap-3">
+                      {/* Status Badge */}
+                      <span className={`badge-obsidian ${statusConfig.badgeClass} text-[10px]`}>
+                        <span className={`status-dot ${statusConfig.dotClass}`} />
+                        {statusConfig.label}
+                      </span>
 
-                          {/* Date */}
-                          <td className="px-4 py-3">
-                            <span className="text-text-secondary">
-                              {new Date(doc.created_at).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                              })}
-                            </span>
-                          </td>
-
-                          {/* Action Button */}
-                          <td className="px-4 py-3 text-center">
-                            <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.95 }}
-                              className="inline-flex items-center justify-center p-2 hover:bg-glass-light rounded-lg transition-colors"
+                      {/* Actions */}
+                      <div className="relative">
+                        <button
+                          onClick={() => setMenuOpenId(menuOpenId === doc.id ? null : doc.id)}
+                          className="p-1.5 rounded-md text-text-dim hover:text-text-secondary hover:bg-white/[0.04] transition-all opacity-0 group-hover:opacity-100"
+                        >
+                          <MoreHorizontal size={14} />
+                        </button>
+                        {menuOpenId === doc.id && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            className="absolute right-0 mt-1 w-36 rounded-lg py-1 z-50"
+                            style={{
+                              background: 'rgba(10, 10, 10, 0.95)',
+                              border: '1px solid rgba(255, 255, 255, 0.10)',
+                              boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                            }}
+                          >
+                            <Link
+                              href={`/dashboard/documents/${doc.id}`}
+                              className="flex items-center gap-2 px-3 py-1.5 text-xs text-text-secondary hover:text-white hover:bg-white/[0.04] transition-colors"
                             >
-                              <Eye size={16} className="text-accent-cyan" />
-                            </motion.button>
-                          </td>
-                        </motion.tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </GlassCard>
+                              <ExternalLink size={12} /> View Details
+                            </Link>
+                            <button
+                              onClick={() => handleDelete(doc.id)}
+                              className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/10 transition-colors"
+                            >
+                              <Trash2 size={12} /> Delete
+                            </button>
+                          </motion.div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </motion.div>
 
-        {/* AI Insights Panel - 1 column */}
+        {/* AI Neural Panel — 1 column */}
         <motion.div
-          {...getEntranceAnimation(1)}
-          className="lg:col-span-1"
-          viewport={{ once: true, margin: '0px 0px -100px 0px' }}
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-          whileInView={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{
-            type: 'spring',
-            stiffness: 100,
-            damping: 15,
+          variants={item}
+          className="relative rounded-xl overflow-hidden scanner-container"
+          style={{
+            background: 'rgba(255, 255, 255, 0.02)',
+            border: '1px solid rgba(255, 255, 255, 0.06)',
           }}
         >
-          <GlassCard variant="dark" hover={false}>
-            {/* Panel Header */}
-            <div className="mb-6 flex items-center gap-2">
-              <BarChart3 size={20} className="text-accent-cyan" />
-              <h3 className="heading-sm text-text-primary">AI Summary</h3>
+          {/* Scanner Line */}
+          <div className="scanner-line" />
+
+          <div className="px-6 py-4 border-b border-white/[0.06]">
+            <div className="flex items-center gap-2">
+              <Activity size={14} className="text-accent-emerald" />
+              <h2 className="text-sm font-semibold text-white tracking-wide">AI Neural Activity</h2>
+            </div>
+          </div>
+
+          <div className="p-6 space-y-5">
+            {/* System Status */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-2 h-2 rounded-full bg-accent-emerald animate-pulse" />
+                <span className="text-xs text-accent-emerald font-medium tracking-wider uppercase">System Online</span>
+              </div>
+              <div
+                className="p-3 rounded-lg space-y-2"
+                style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.04)' }}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-text-dim">Neural Engine</span>
+                  <span className="text-[11px] text-accent-emerald font-medium">Active</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-text-dim">Processing Queue</span>
+                  <span className="text-[11px] text-text-secondary font-medium">{pendingDocs} pending</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-text-dim">Model Version</span>
+                  <span className="text-[11px] text-text-secondary font-medium">v2.4.1</span>
+                </div>
+              </div>
             </div>
 
-            {/* Selected Document Info */}
-            {selectedDoc && (
-              <div className="space-y-4">
-                {/* Document Title */}
-                <div>
-                  <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
-                    Selected Document
-                  </p>
-                  <p className="text-text-primary truncate text-sm font-medium">
-                    {selectedDoc.file_name}
-                  </p>
-                </div>
-
-                {/* Divider */}
-                <div className="border-t border-glass-border"></div>
-
-                {/* Analysis Available - Show Real Data */}
-                {selectedDocAnalysis ? (
-                  <>
-                    {/* Plain English Summary */}
+            {/* Recent Activity */}
+            <div>
+              <h3 className="text-xs text-text-dim font-medium tracking-wider uppercase mb-3">Latest Activity</h3>
+              <div className="space-y-3">
+                {documents.slice(0, 4).map((doc, i) => (
+                  <motion.div
+                    key={doc.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 + i * 0.1 }}
+                    className="flex items-start gap-2.5"
+                  >
+                    <div className="mt-1.5">
+                      <Sparkles size={10} className="text-accent-cyan" />
+                    </div>
                     <div>
-                      <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-2">
-                        Summary
-                      </p>
-                      <p className="text-text-secondary text-sm leading-relaxed">
-                        {selectedDocAnalysis.summary}
+                      <p className="text-xs text-text-secondary leading-tight">{doc.fileName}</p>
+                      <p className="text-[10px] text-text-dim mt-0.5">
+                        {doc.uploadedAt
+                          ? formatDistanceToNow(new Date(doc.uploadedAt), { addSuffix: true })
+                          : 'Recently'}
                       </p>
                     </div>
-
-                    {/* Divider */}
-                    <div className="border-t border-glass-border"></div>
-
-                    {/* Action Items */}
-                    <div>
-                      <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-3">
-                        Action Items
-                      </p>
-                      <ul className="space-y-2">
-                        {Array.isArray(selectedDocAnalysis.action_items) && selectedDocAnalysis.action_items.map((item: string, idx: number) => (
-                          <motion.li
-                            key={idx}
-                            initial={{ opacity: 0, x: -10 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            transition={{
-                              type: 'spring',
-                              stiffness: 100,
-                              damping: 15,
-                              delay: idx * 0.1,
-                            }}
-                            viewport={{ once: true }}
-                            className="flex items-start gap-2 text-sm text-text-secondary"
-                          >
-                            <span className="text-accent-cyan mt-1">•</span>
-                            <span>{item}</span>
-                          </motion.li>
-                        ))}
-                      </ul>
-                    </div>
-                  </>
-                ) : (
-                  /* No Analysis Available */
-                  <div className="flex flex-col items-center justify-center py-6 text-center">
-                    <BarChart3 size={32} className="text-glass-border mb-3" />
-                    <p className="text-text-secondary text-sm">
-                      Analysis not available.
-                    </p>
-                    <p className="text-text-muted text-xs mt-1">
-                      Upload a document to get started.
-                    </p>
-                  </div>
+                  </motion.div>
+                ))}
+                {documents.length === 0 && (
+                  <p className="text-xs text-text-dim">No recent activity</p>
                 )}
               </div>
-            )}
+            </div>
 
-            {!selectedDoc && (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <FileText size={32} className="text-glass-border mb-3" />
-                <p className="text-text-muted text-sm">
-                  Select a document to view AI insights
-                </p>
-              </div>
-            )}
-          </GlassCard>
+            {/* Quick Action */}
+            <Link href="/dashboard/upload">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full py-2.5 rounded-lg text-xs font-medium text-text-secondary transition-all flex items-center justify-center gap-2"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.06)',
+                }}
+              >
+                <Upload size={13} />
+                Quick Upload
+              </motion.button>
+            </Link>
+          </div>
         </motion.div>
-      </motion.div>
-    </div>
+      </div>
+    </motion.div>
   )
 }
