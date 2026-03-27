@@ -12,7 +12,7 @@ export default function LandingPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8 }}
-      className="min-h-screen bg-black text-text-primary overflow-hidden"
+      className="min-h-screen bg-black dark:bg-black text-text-primary overflow-hidden"
     >
       {/* Navigation */}
       <LandingNavbar />

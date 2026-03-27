@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { GlassButton } from '@/components/ui/GlassButton'
 import { CardSwap } from '@/components/ui/CardSwap'
+import { ScrambledText } from '@/components/ui/ScrambledText'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import { getStaggerContainerAnimation, getStaggerChildAnimation } from '@/hooks/useAnimations'
 
@@ -12,22 +13,31 @@ export function Hero() {
     {
       id: '1',
       title: 'Contract Analysis',
-      description: '3 Critical Issues Detected'
+      description: '',
+      label: 'CONTRACT ANALYSIS',
+      stat: '3 Critical Issues Detected',
+      detail: 'Parties: ABC Inc, XYZ Corp • $500K • 3yr auto-renew'
     },
     {
       id: '2',
       title: 'Tax Return Summary',
-      description: '$142K Total, Due Apr 15'
+      description: '',
+      label: 'TAX RETURN SUMMARY',
+      stat: '$142K Total',
+      detail: 'Due Apr 15 • 4 deductions flagged • Refund: $3,200'
     },
     {
       id: '3',
       title: 'Lease Agreement',
-      description: 'Auto-renew clause flagged'
+      description: '',
+      label: 'LEASE AGREEMENT',
+      stat: 'Auto-renew Clause Flagged',
+      detail: 'Building A • 24mo term • Rent escalation: 8%/yr'
     }
   ]
 
   return (
-    <section className="relative min-h-screen pt-32 pb-20 px-6 overflow-hidden flex items-center">
+    <section className="relative min-h-screen pt-32 pb-20 px-6 overflow-hidden flex items-center bg-white dark:bg-black">
       <div className="max-w-7xl mx-auto w-full">
         <motion.div
           {...getStaggerContainerAnimation()}
@@ -38,7 +48,7 @@ export function Hero() {
             {/* Badge */}
             <motion.div
               {...getStaggerChildAnimation()}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-glass-light border border-glass-border w-fit"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 dark:bg-glass-light border border-gray-300 dark:border-glass-border w-fit"
             >
               <Sparkles size={16} className="text-accent-cyan" />
               <span className="text-xs font-medium text-text-secondary">
@@ -58,10 +68,10 @@ export function Hero() {
                   Insights
                 </span>
               </h1>
-              <p className="text-xl text-text-secondary max-w-2xl leading-relaxed">
-                Claro analyzes complex legal documents in seconds, extracting key terms, identifying
-                risks, and providing actionable insights powered by advanced AI.
-              </p>
+              <ScrambledText radius={120} duration={1.2} scrambleChars=".:">
+                Claro analyzes complex legal documents in seconds, extracting key terms,
+                identifying risks, and providing actionable insights powered by advanced AI.
+              </ScrambledText>
             </motion.div>
 
             {/* CTA Buttons */}
@@ -83,7 +93,7 @@ export function Hero() {
                 whileTap={{ scale: 0.95 }}
                 className="w-full sm:w-auto"
               >
-                <button className="w-full sm:w-auto px-8 py-3 rounded-lg bg-glass-dark border border-glass-border text-text-primary hover:border-glass-border-hover transition-all font-medium flex items-center justify-center gap-2">
+                <button className="w-full sm:w-auto px-8 py-3 rounded-lg bg-gray-100 dark:bg-glass-dark border border-gray-300 dark:border-glass-border text-gray-900 dark:text-text-primary hover:border-gray-400 dark:hover:border-glass-border-hover transition-all font-medium flex items-center justify-center gap-2">
                   Watch Demo
                   <Sparkles size={18} />
                 </button>

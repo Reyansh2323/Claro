@@ -33,7 +33,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ type: 'spring', stiffness: 100, damping: 15 }}
-        className="fixed top-0 left-0 right-0 z-modal glass-surface-lg bg-glass-dark border-b border-glass-border backdrop-blur-3xl"
+        className="fixed top-0 left-0 right-0 z-modal glass-surface-lg bg-white/10 dark:bg-glass-dark border-b border-gray-200 dark:border-glass-border backdrop-blur-3xl"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
