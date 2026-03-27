@@ -28,29 +28,7 @@ export const Footer: React.FC<FooterProps> = ({ show = true }) => {
             © {currentYear} Claro. All rights reserved.
           </div>
 
-          {/* Right: Legal links */}
-          <div className="flex gap-6 text-sm">
-            <a
-              href="#privacy"
-              className="text-text-muted hover:text-text-primary transition-colors"
-            >
-              Privacy Policy
-            </a>
-            <span className="text-glass-border">•</span>
-            <a
-              href="#terms"
-              className="text-text-muted hover:text-text-primary transition-colors"
-            >
-              Terms of Service
-            </a>
-            <span className="text-glass-border">•</span>
-            <a
-              href="#support"
-              className="text-text-muted hover:text-text-primary transition-colors"
-            >
-              Support
-            </a>
-          </div>
+
         </div>
 
         {/* Divider */}

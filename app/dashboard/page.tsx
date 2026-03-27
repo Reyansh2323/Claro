@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { GlassBadge } from '@/components/ui/GlassBadge'
+import { Loading } from '@/components/shared/Loading'
 import {
   BarChart3,
   AlertTriangle,
@@ -15,16 +16,89 @@ import {
 } from 'lucide-react'
 import {
   MOCK_KPI_DATA,
-  MOCK_DOCUMENTS,
   DOCUMENT_STATUS,
-  MOCK_AI_INSIGHTS,
 } from '@/lib/constants'
+import { createClient } from '@/lib/supabaseBrowser'
 import { getEntranceAnimation, getStaggerContainerAnimation } from '@/hooks/useAnimations'
 
-export default function DashboardPage() {
-  const [selectedDocId, setSelectedDocId] = useState<string>(MOCK_DOCUMENTS[0]?.id || '')
+interface DocumentRow {
+  id: string
+  file_name: string
+  status: string
+  created_at: string
+  user_id: string
+}
 
-  const selectedDoc = MOCK_DOCUMENTS.find((d) => d.id === selectedDocId)
+interface AnalysisRow {
+  id: string
+  document_id: string
+  summary: string
+  action_items: string[]
+}
+
+export default function DashboardPage() {
+  const [selectedDocId, setSelectedDocId] = useState<string>('')
+  const [documents, setDocuments] = useState<DocumentRow[]>([])
+  const [analyses, setAnalyses] = useState<Map<string, AnalysisRow>>(new Map())
+  const [loading, setLoading] = useState(true)
+  const supabase = createClient()
+
+  // Fetch documents on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Get logged-in user
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
+        // Fetch documents for this user
+        const { data: docsData, error: docsError } = await supabase
+          .from('documents')
+          .select('id, file_name, status, created_at, user_id')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+
+        if (docsError) {
+          console.error('Error fetching documents:', docsError)
+          setDocuments([])
+        } else {
+          setDocuments(docsData || [])
+          
+          // Set first document as selected
+          if (docsData && docsData.length > 0) {
+            setSelectedDocId(docsData[0].id)
+          }
+
+          // Fetch analyses for all documents
+          if (docsData && docsData.length > 0) {
+            const docIds = docsData.map(d => d.id)
+            const { data: analysesData, error: analysesError } = await supabase
+              .from('analyses')
+              .select('id, document_id, summary, action_items')
+              .in('document_id', docIds)
+
+            if (!analysesError && analysesData) {
+              const analysisMap = new Map()
+              analysesData.forEach(a => {
+                analysisMap.set(a.document_id, a)
+              })
+              setAnalyses(analysisMap)
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error in fetchData:', error)
+        setDocuments([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [supabase])
+
+  const selectedDoc = documents.find((d) => d.id === selectedDocId)
+  const selectedDocAnalysis = selectedDoc ? analyses.get(selectedDoc.id) : null
 
   const kpiCards = [
     {
@@ -142,96 +216,115 @@ export default function DashboardPage() {
             <div className="mb-6">
               <h2 className="heading-sm text-text-primary mb-1">Recent Documents</h2>
               <p className="text-text-muted text-sm">
-                {MOCK_DOCUMENTS.length} documents in your library
+                {documents.length} documents in your library
               </p>
             </div>
 
+            {/* Loading State */}
+            {loading && (
+              <div className="flex items-center justify-center py-8">
+                <Loading />
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!loading && documents.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <FileText size={40} className="text-glass-border mb-4" />
+                <p className="text-text-secondary mb-2">No documents yet.</p>
+                <p className="text-text-muted text-sm">Upload your first document to get started.</p>
+              </div>
+            )}
+
             {/* Documents Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-glass-border">
-                    <th className="px-4 py-3 text-left text-text-muted font-semibold">
-                      Document
-                    </th>
-                    <th className="px-4 py-3 text-left text-text-muted font-semibold">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 text-left text-text-muted font-semibold">
-                      Date
-                    </th>
-                    <th className="px-4 py-3 text-center text-text-muted font-semibold">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-glass-border">
-                  {MOCK_DOCUMENTS.map((doc, idx) => {
-                    const statusConfig = DOCUMENT_STATUS[doc.status as keyof typeof DOCUMENT_STATUS] || DOCUMENT_STATUS.PROCESSING
-                    const isSelected = selectedDocId === doc.id
+            {!loading && documents.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-glass-border">
+                      <th className="px-4 py-3 text-left text-text-muted font-semibold">
+                        Document
+                      </th>
+                      <th className="px-4 py-3 text-left text-text-muted font-semibold">
+                        Status
+                      </th>
+                      <th className="px-4 py-3 text-left text-text-muted font-semibold">
+                        Date
+                      </th>
+                      <th className="px-4 py-3 text-center text-text-muted font-semibold">
+                        Action
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-glass-border">
+                    {documents.map((doc, idx) => {
+                      const statusKey = doc.status?.toUpperCase() || 'PROCESSING'
+                      const statusConfig = DOCUMENT_STATUS[statusKey as keyof typeof DOCUMENT_STATUS] || DOCUMENT_STATUS.PROCESSING
+                      const isSelected = selectedDocId === doc.id
 
-                    return (
-                      <motion.tr
-                        key={doc.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        transition={{
-                          type: 'spring',
-                          stiffness: 100,
-                          damping: 15,
-                          delay: idx * 0.05,
-                        }}
-                        viewport={{ once: true }}
-                        className={`hover:bg-glass-light transition-colors cursor-pointer ${
-                          isSelected ? 'bg-glass-light' : ''
-                        }`}
-                        onClick={() => setSelectedDocId(doc.id)}
-                      >
-                        {/* Document Name */}
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <FileText size={16} className="text-text-muted" />
-                            <span className="text-text-primary truncate font-medium">
-                              {doc.name}
+                      return (
+                        <motion.tr
+                          key={doc.id}
+                          initial={{ opacity: 0, x: -10 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          transition={{
+                            type: 'spring',
+                            stiffness: 100,
+                            damping: 15,
+                            delay: idx * 0.05,
+                          }}
+                          viewport={{ once: true }}
+                          className={`hover:bg-glass-light transition-colors cursor-pointer ${
+                            isSelected ? 'bg-glass-light' : ''
+                          }`}
+                          onClick={() => setSelectedDocId(doc.id)}
+                        >
+                          {/* Document Name */}
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <FileText size={16} className="text-text-muted" />
+                              <span className="text-text-primary truncate font-medium">
+                                {doc.file_name}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Status Badge */}
+                          <td className="px-4 py-3">
+                            <GlassBadge
+                              label={statusConfig.label}
+                              variant={statusConfig.variant}
+                              size="sm"
+                            />
+                          </td>
+
+                          {/* Date */}
+                          <td className="px-4 py-3">
+                            <span className="text-text-secondary">
+                              {new Date(doc.created_at).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                              })}
                             </span>
-                          </div>
-                        </td>
+                          </td>
 
-                        {/* Status Badge */}
-                        <td className="px-4 py-3">
-                          <GlassBadge
-                            label={statusConfig.label}
-                            variant={statusConfig.variant}
-                            size="sm"
-                          />
-                        </td>
-
-                        {/* Date */}
-                        <td className="px-4 py-3">
-                          <span className="text-text-secondary">
-                            {new Date(doc.date).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                            })}
-                          </span>
-                        </td>
-
-                        {/* Action Button */}
-                        <td className="px-4 py-3 text-center">
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="inline-flex items-center justify-center p-2 hover:bg-glass-light rounded-lg transition-colors"
-                          >
-                            <Eye size={16} className="text-accent-cyan" />
-                          </motion.button>
-                        </td>
-                      </motion.tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
+                          {/* Action Button */}
+                          <td className="px-4 py-3 text-center">
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.95 }}
+                              className="inline-flex items-center justify-center p-2 hover:bg-glass-light rounded-lg transition-colors"
+                            >
+                              <Eye size={16} className="text-accent-cyan" />
+                            </motion.button>
+                          </td>
+                        </motion.tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </GlassCard>
         </motion.div>
 
@@ -264,64 +357,68 @@ export default function DashboardPage() {
                     Selected Document
                   </p>
                   <p className="text-text-primary truncate text-sm font-medium">
-                    {selectedDoc.name}
+                    {selectedDoc.file_name}
                   </p>
                 </div>
 
                 {/* Divider */}
                 <div className="border-t border-glass-border"></div>
 
-                {/* Plain English Summary */}
-                <div>
-                  <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-2">
-                    Summary
-                  </p>
-                  <p className="text-text-secondary text-sm leading-relaxed">
-                    {MOCK_AI_INSIGHTS.summary}
-                  </p>
-                </div>
+                {/* Analysis Available - Show Real Data */}
+                {selectedDocAnalysis ? (
+                  <>
+                    {/* Plain English Summary */}
+                    <div>
+                      <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-2">
+                        Summary
+                      </p>
+                      <p className="text-text-secondary text-sm leading-relaxed">
+                        {selectedDocAnalysis.summary}
+                      </p>
+                    </div>
 
-                {/* Divider */}
-                <div className="border-t border-glass-border"></div>
+                    {/* Divider */}
+                    <div className="border-t border-glass-border"></div>
 
-                {/* Action Items */}
-                <div>
-                  <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-3">
-                    Action Items
-                  </p>
-                  <ul className="space-y-2">
-                    {MOCK_AI_INSIGHTS.actionItems.map((item, idx) => (
-                      <motion.li
-                        key={idx}
-                        initial={{ opacity: 0, x: -10 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        transition={{
-                          type: 'spring',
-                          stiffness: 100,
-                          damping: 15,
-                          delay: idx * 0.1,
-                        }}
-                        viewport={{ once: true }}
-                        className="flex items-start gap-2 text-sm text-text-secondary"
-                      >
-                        <span className="text-accent-cyan mt-1">•</span>
-                        <span>{item}</span>
-                      </motion.li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Divider */}
-                <div className="border-t border-glass-border"></div>
-
-                {/* CTA Button */}
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full py-2 px-3 rounded-lg bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan text-sm font-medium hover:bg-accent-cyan/20 transition-colors"
-                >
-                  View Full Analysis
-                </motion.button>
+                    {/* Action Items */}
+                    <div>
+                      <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-3">
+                        Action Items
+                      </p>
+                      <ul className="space-y-2">
+                        {Array.isArray(selectedDocAnalysis.action_items) && selectedDocAnalysis.action_items.map((item: string, idx: number) => (
+                          <motion.li
+                            key={idx}
+                            initial={{ opacity: 0, x: -10 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            transition={{
+                              type: 'spring',
+                              stiffness: 100,
+                              damping: 15,
+                              delay: idx * 0.1,
+                            }}
+                            viewport={{ once: true }}
+                            className="flex items-start gap-2 text-sm text-text-secondary"
+                          >
+                            <span className="text-accent-cyan mt-1">•</span>
+                            <span>{item}</span>
+                          </motion.li>
+                        ))}
+                      </ul>
+                    </div>
+                  </>
+                ) : (
+                  /* No Analysis Available */
+                  <div className="flex flex-col items-center justify-center py-6 text-center">
+                    <BarChart3 size={32} className="text-glass-border mb-3" />
+                    <p className="text-text-secondary text-sm">
+                      Analysis not available.
+                    </p>
+                    <p className="text-text-muted text-xs mt-1">
+                      Upload a document to get started.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 

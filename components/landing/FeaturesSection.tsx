@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { GlassCard } from '@/components/ui/GlassCard'
+import { GlareHover } from '@/components/ui/GlareHover'
 import { getStaggerContainerAnimation, getStaggerChildAnimation } from '@/hooks/useAnimations'
 import {
   FileText,
@@ -92,23 +93,30 @@ export function FeaturesSection() {
             <motion.div
               key={index}
               {...getStaggerChildAnimation(index * 0.1)}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
             >
-              <GlassCard variant="subtle" className="h-full">
-                <div className="flex flex-col h-full">
-                  {/* Icon */}
-                  <div
-                    className={`inline-flex w-12 h-12 rounded-lg bg-gradient-to-br ${feature.gradient} items-center justify-center text-accent-cyan mb-4`}
-                  >
-                    {feature.icon}
-                  </div>
+              <GlareHover
+                background="rgba(255,255,255,0.04)"
+                borderColor="rgba(255,255,255,0.1)"
+                borderRadius="12px"
+                glareColor="#ffffff"
+                glareOpacity={0.15}
+                glareSize={280}
+              >
+                <GlassCard variant="subtle" className="h-full">
+                  <div className="flex flex-col h-full">
+                    {/* Icon */}
+                    <div
+                      className={`inline-flex w-12 h-12 rounded-lg bg-gradient-to-br ${feature.gradient} items-center justify-center text-accent-cyan mb-4`}
+                    >
+                      {feature.icon}
+                    </div>
 
-                  {/* Content */}
-                  <h3 className="text-lg font-semibold text-text-primary mb-2">{feature.title}</h3>
-                  <p className="text-text-muted text-sm leading-relaxed">{feature.description}</p>
-                </div>
-              </GlassCard>
+                    {/* Content */}
+                    <h3 className="text-lg font-semibold text-text-primary mb-2">{feature.title}</h3>
+                    <p className="text-text-muted text-sm leading-relaxed">{feature.description}</p>
+                  </div>
+                </GlassCard>
+              </GlareHover>
             </motion.div>
           ))}
         </motion.div>

@@ -95,28 +95,16 @@ export const DASHBOARD_NAV_ITEMS = [
     icon: 'BarChart3',
   },
   {
-    id: 'contracts',
-    label: 'Contracts & Leases',
-    href: NAV_PATHS.contracts,
-    icon: 'FileText',
+    id: 'upload',
+    label: 'Upload Document',
+    href: NAV_PATHS.upload,
+    icon: 'Upload',
   },
   {
-    id: 'risk-alerts',
-    label: 'Risk Alerts',
-    href: NAV_PATHS.riskAlerts,
-    icon: 'AlertTriangle',
-  },
-  {
-    id: 'tax-financial',
-    label: 'Tax & Financial',
-    href: NAV_PATHS.taxFinancial,
-    icon: 'DollarSign',
-  },
-  {
-    id: 'settings',
-    label: 'Settings',
-    href: NAV_PATHS.settings,
-    icon: 'Settings',
+    id: 'analysis',
+    label: 'AI Analysis',
+    href: '/dashboard/analysis',
+    icon: 'Zap',
   },
 ] as const
 

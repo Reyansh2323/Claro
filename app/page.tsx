@@ -4,7 +4,6 @@ import { motion } from 'framer-motion'
 import LandingNavbar from '@/components/landing/Navbar'
 import { Hero } from '@/components/landing/Hero'
 import { FeaturesSection } from '@/components/landing/FeaturesSection'
-import { CTASection } from '@/components/landing/CTASection'
 import { Footer } from '@/components/layout/Footer'
 
 export default function LandingPage() {
@@ -25,9 +24,6 @@ export default function LandingPage() {
 
         {/* Features Section */}
         <FeaturesSection />
-
-        {/* CTA Section */}
-        <CTASection />
       </main>
 
       {/* Footer */}

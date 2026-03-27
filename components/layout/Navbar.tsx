@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { ClaroLogo } from '@/components/shared/ClaroLogo'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { User, LogOut, Settings } from 'lucide-react'
 
 export interface NavbarProps {
@@ -43,6 +44,9 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Center/Right: Navigation */}
             <div className="flex items-center gap-6">
+              {/* Theme Toggle */}
+              <ThemeToggle />
+
               {/* Right content (custom) */}
               {rightContent && <div>{rightContent}</div>}
 

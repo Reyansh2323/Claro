@@ -198,9 +198,6 @@ export default function DocumentDetailPage() {
               <p className="text-text-secondary leading-relaxed mb-4">
                 {MOCK_AI_INSIGHTS.summary}
               </p>
-              <GlassButton variant="tertiary" fullWidth>
-                Expand Full Analysis
-              </GlassButton>
             </GlassCard>
           </motion.div>
         </div>
