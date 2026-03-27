@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { GlassButton } from '@/components/ui/GlassButton'
 import { CardSwap } from '@/components/ui/CardSwap'
+import { ScrambledText } from '@/components/ui/ScrambledText'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import { getStaggerContainerAnimation, getStaggerChildAnimation } from '@/hooks/useAnimations'
 
@@ -67,6 +68,10 @@ export function Hero() {
                   Insights
                 </span>
               </h1>
+              <ScrambledText radius={120} duration={1.2} scrambleChars=".:">
+                Claro analyzes complex legal documents in seconds, extracting key terms,
+                identifying risks, and providing actionable insights powered by advanced AI.
+              </ScrambledText>
             </motion.div>
 
             {/* CTA Buttons */}
