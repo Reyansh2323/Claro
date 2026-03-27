@@ -7,9 +7,6 @@ interface Card {
   id: string
   title: string
   description: string
-  label?: string
-  stat?: string
-  detail?: string
 }
 
 interface CardSwapProps {
@@ -75,43 +72,21 @@ export function CardSwap({
         >
           {/* Glass Card */}
           <div
-            className="w-full h-full rounded-xl p-6 md:p-8 backdrop-blur-md border border-white/10 dark:border-white/10 bg-white/5 dark:bg-black/80 flex flex-col justify-between"
+            className="w-full h-full rounded-xl p-6 md:p-8 backdrop-blur-md border border-glass-border flex flex-col justify-between"
             style={{
+              background: 'rgba(0, 0, 0, 0.4)',
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255,255,255,0.1)',
             }}
           >
-            {/* Label (if exists) */}
-            {currentCard.label && (
-              <div className="text-xs tracking-widest text-white/50 uppercase font-semibold mb-2">
-                {currentCard.label}
-              </div>
-            )}
-
-            {/* Stat/Title */}
+            {/* Title */}
             <div>
-              {currentCard.stat ? (
-                <div className="text-2xl md:text-3xl font-bold text-white mb-4">
-                  {currentCard.stat}
-                </div>
-              ) : (
-                <h3 className="text-xl md:text-2xl font-bold text-text-primary mb-2">
-                  {currentCard.title}
-                </h3>
-              )}
-
-              {!currentCard.stat && (
-                <p className="text-text-secondary text-sm md:text-base leading-relaxed">
-                  {currentCard.description}
-                </p>
-              )}
+              <h3 className="text-xl md:text-2xl font-bold text-text-primary mb-2">
+                {currentCard.title}
+              </h3>
+              <p className="text-text-secondary text-sm md:text-base leading-relaxed">
+                {currentCard.description}
+              </p>
             </div>
-
-            {/* Detail (if exists) */}
-            {currentCard.detail && (
-              <div className="text-xs text-white/60 mt-4">
-                {currentCard.detail}
-              </div>
-            )}
 
             {/* Progress Indicator */}
             <div className="flex items-center gap-2 pt-4">

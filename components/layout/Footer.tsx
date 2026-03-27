@@ -19,7 +19,7 @@ export const Footer: React.FC<FooterProps> = ({ show = true }) => {
       whileInView={{ y: 0 }}
       transition={{ type: 'spring', stiffness: 100, damping: 15 }}
       viewport={{ once: true }}
-      className="glass-surface-sm bg-white/10 dark:bg-glass-dark border-t border-gray-200 dark:border-glass-border py-8 md:py-12 mt-20"
+      className="glass-surface-sm bg-glass-dark border-t border-glass-border py-8 md:py-12 mt-20"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">

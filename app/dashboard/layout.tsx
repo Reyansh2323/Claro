@@ -48,7 +48,7 @@ export default function DashboardLayout({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black-base text-gray-900 dark:text-text-primary">
+      <div className="min-h-screen flex items-center justify-center bg-black-base text-text-primary">
         <div className="flex flex-col items-center gap-4">
           <div className="w-8 h-8 border-2 border-accent-cyan border-t-transparent rounded-full animate-spin"></div>
           <p className="text-text-secondary">Checking authentication...</p>
@@ -58,7 +58,7 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black-base text-gray-900 dark:text-text-primary">
+    <div className="min-h-screen bg-black-base text-text-primary">
       {/* Navbar at top */}
       <Navbar hideUserMenu={false} />
 

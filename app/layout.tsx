@@ -38,7 +38,7 @@ export default function RootLayout({
       </head>
       <body
         suppressHydrationWarning
-        className="min-h-screen bg-white dark:bg-black-base text-gray-900 dark:text-brand-text transition-colors duration-300"
+        className="min-h-screen bg-black-base text-brand-text transition-colors duration-300"
       >
         {/* Animated gradient blob background */}
         <div id="gradient-blobs" className="z-glass-bg">

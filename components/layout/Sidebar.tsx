@@ -47,12 +47,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       initial={{ x: -300 }}
       animate={{ x: 0 }}
       transition={{ type: 'spring', stiffness: 100, damping: 15 }}
-      className="hidden md:flex flex-col fixed left-0 top-20 bottom-0 w-64 glass-surface-lg bg-white/10 dark:bg-glass-dark border-r border-gray-200 dark:border-glass-border backdrop-blur-3xl z-glass-content"
+      className="hidden md:flex flex-col fixed left-0 top-20 bottom-0 w-64 glass-surface-lg bg-glass-dark border-r border-glass-border backdrop-blur-3xl z-glass-content"
     >
       {/* Sidebar Content */}
       <div className="flex flex-col h-full">
         {/* Logo Area */}
-        <div className="p-6 border-b border-gray-200 dark:border-glass-border">
+        <div className="p-6 border-b border-glass-border">
           <Link href="/" className="flex items-center justify-between">
             <ClaroLogo size="sm" variant="light" animate={false} />
             {onToggleCollapse && expanded && (

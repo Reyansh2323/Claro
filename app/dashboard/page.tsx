@@ -14,7 +14,10 @@ import {
   FileText,
   Eye,
 } from 'lucide-react'
-import { DOCUMENT_STATUS } from '@/lib/constants'
+import {
+  MOCK_KPI_DATA,
+  DOCUMENT_STATUS,
+} from '@/lib/constants'
 import { createClient } from '@/lib/supabaseBrowser'
 import { getEntranceAnimation, getStaggerContainerAnimation } from '@/hooks/useAnimations'
 
@@ -38,14 +41,9 @@ export default function DashboardPage() {
   const [documents, setDocuments] = useState<DocumentRow[]>([])
   const [analyses, setAnalyses] = useState<Map<string, AnalysisRow>>(new Map())
   const [loading, setLoading] = useState(true)
-  const [kpiData, setKpiData] = useState({
-    documentsAnalyzed: 0,
-    criticalAlerts: 0,
-    pendingDeadlines: 0,
-  })
   const supabase = createClient()
 
-  // Fetch documents and stats on mount
+  // Fetch documents on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -88,54 +86,6 @@ export default function DashboardPage() {
             }
           }
         }
-
-        // Fetch KPI stats
-        const now = new Date()
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-
-        // Query 1: Documents analyzed this month
-        const { count: docCount } = await supabase
-          .from('documents')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('status', 'ANALYZED')
-          .gte('updated_at', startOfMonth.toISOString())
-
-        // Query 2: Critical risk alerts (TODO: fallback if table missing)
-        let riskCount = 0
-        try {
-          const { count: alertCount } = await supabase
-            .from('risk_alerts')
-            .select('id', { count: 'exact', head: true })
-            .eq('user_id', user.id)
-            .eq('severity', 'CRITICAL')
-            .gte('created_at', startOfMonth.toISOString())
-          riskCount = alertCount || 0
-        } catch (error) {
-          console.warn('risk_alerts table may not exist:', error)
-          riskCount = 0
-        }
-
-        // Query 3: Pending deadlines (TODO: fallback if table missing)
-        let deadlineCount = 0
-        try {
-          const { count: dlCount } = await supabase
-            .from('deadlines')
-            .select('id', { count: 'exact', head: true })
-            .eq('user_id', user.id)
-            .eq('status', 'PENDING')
-            .gte('due_date', now.toISOString())
-          deadlineCount = dlCount || 0
-        } catch (error) {
-          console.warn('deadlines table may not exist:', error)
-          deadlineCount = 0
-        }
-
-        setKpiData({
-          documentsAnalyzed: docCount || 0,
-          criticalAlerts: riskCount,
-          pendingDeadlines: deadlineCount,
-        })
       } catch (error) {
         console.error('Error in fetchData:', error)
         setDocuments([])
@@ -154,25 +104,25 @@ export default function DashboardPage() {
     {
       id: 'documents',
       icon: FileText,
-      label: 'Documents Analyzed',
-      value: kpiData.documentsAnalyzed || '—',
-      trend: 12,
+      label: MOCK_KPI_DATA.documentsAnalyzed.label,
+      value: MOCK_KPI_DATA.documentsAnalyzed.value,
+      trend: MOCK_KPI_DATA.documentsAnalyzed.trend,
       color: 'text-accent-cyan',
     },
     {
       id: 'alerts',
       icon: AlertTriangle,
-      label: 'Critical Risk Alerts',
-      value: kpiData.criticalAlerts || '—',
-      trend: -8,
+      label: MOCK_KPI_DATA.criticalAlerts.label,
+      value: MOCK_KPI_DATA.criticalAlerts.value,
+      trend: MOCK_KPI_DATA.criticalAlerts.trend,
       color: 'text-red-400',
     },
     {
       id: 'deadlines',
       icon: Calendar,
-      label: 'Pending Deadlines',
-      value: kpiData.pendingDeadlines || '—',
-      trend: 5,
+      label: MOCK_KPI_DATA.pendingDeadlines.label,
+      value: MOCK_KPI_DATA.pendingDeadlines.value,
+      trend: MOCK_KPI_DATA.pendingDeadlines.trend,
       color: 'text-yellow-400',
     },
   ]
