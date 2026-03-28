@@ -70,12 +70,7 @@ const FEATURES = [
   },
 ]
 
-const STATS = [
-  { value: '10K+', label: 'Documents Analyzed' },
-  { value: '98%', label: 'Accuracy Rate' },
-  { value: '500+', label: 'Active Users' },
-  { value: '<5s', label: 'Avg. Analysis Time' },
-]
+
 
 import LightRays from '@/components/LightRays'
 
@@ -224,19 +219,7 @@ export default function LandingPage() {
             </Link>
           </motion.div>
 
-          {/* Stats Bar */}
-          <motion.div
-            variants={item}
-            id="stats"
-            className="flex flex-wrap justify-center gap-8 md:gap-14"
-          >
-            {STATS.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <p className="text-2xl md:text-3xl font-bold text-white">{stat.value}</p>
-                <p className="text-xs text-text-dim mt-1 tracking-wider uppercase">{stat.label}</p>
-              </div>
-            ))}
-          </motion.div>
+
         </motion.div>
       </section>
 
@@ -312,9 +295,7 @@ export default function LandingPage() {
           <h2 className="text-display text-4xl md:text-5xl text-white mb-6">
             Ready to get started?
           </h2>
-          <p className="text-lg text-text-muted mb-10">
-            Join hundreds of legal teams already using Claro to transform their document workflows.
-          </p>
+
           <Link href="/signup">
             <motion.button
               whileHover={{ scale: 1.03, y: -2 }}
