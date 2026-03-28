@@ -82,22 +82,22 @@ export default function LandingPage() {
     <div className="min-h-screen">
       {/* ==================== NAVBAR ==================== */}
       <motion.nav
-        initial={{ y: -80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+        initial={{ y: -80, x: '-50%', opacity: 0 }}
+        animate={{ y: 0, x: '-50%', opacity: 1 }}
         transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-        className="fixed top-0 left-0 right-0 z-50 px-6 py-4"
+        className="fixed top-6 left-1/2 z-50 px-6 py-3 rounded-full flex items-center justify-between w-[90%] max-w-4xl"
         style={{
-          background: 'rgba(0, 0, 0, 0.40)',
-          backdropFilter: 'blur(40px)',
-          WebkitBackdropFilter: 'blur(40px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+          background: 'rgba(15, 15, 15, 0.7)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
         }}
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link href="/">
             <ClaroLogo size="sm" animate={false} />
           </Link>
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-8 ml-auto mr-8">
             <a href="#features" className="text-xs text-text-muted hover:text-white transition-colors font-medium tracking-wider uppercase">
               Features
             </a>
@@ -126,7 +126,6 @@ export default function LandingPage() {
               </motion.button>
             </Link>
           </div>
-        </div>
       </motion.nav>
 
       {/* ==================== HERO ==================== */}

@@ -28,26 +28,24 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <>
       <motion.nav
-        initial={{ y: -80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+        initial={{ y: -80, x: '-50%', opacity: 0 }}
+        animate={{ y: 0, x: '-50%', opacity: 1 }}
         transition={{ type: 'spring', stiffness: 100, damping: 20, delay: 0.1 }}
-        className="fixed top-0 left-0 right-0 z-50 h-16"
+        className="fixed top-6 left-1/2 md:left-[calc(50%+130px)] z-50 h-14 rounded-full flex items-center justify-between w-[92%] md:w-[calc(100%-260px-4rem)] md:max-w-5xl px-4 pl-6"
         style={{
-          background: 'rgba(0, 0, 0, 0.60)',
-          backdropFilter: 'blur(64px)',
-          WebkitBackdropFilter: 'blur(64px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+          background: 'rgba(15, 15, 15, 0.7)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
         }}
       >
-        <div className="h-full px-6 flex items-center justify-between">
+        <div className="flex-1 flex items-center justify-between h-full">
           {/* Left: Logo (visible on mobile, hidden on desktop where sidebar has it) */}
           <div className="md:hidden">
             <Link href="/">
               <ClaroLogo size="sm" animate={false} />
             </Link>
-          </div>
-          <div className="hidden md:block md:ml-[260px]">
-            {/* Empty spacer for sidebar offset */}
           </div>
 
           {/* Right: Controls */}
