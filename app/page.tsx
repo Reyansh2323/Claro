@@ -77,9 +77,29 @@ const STATS = [
   { value: '<5s', label: 'Avg. Analysis Time' },
 ]
 
+import LightRays from '@/components/LightRays'
+
 export default function LandingPage() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* ==================== BACKGROUND ANIMATION ==================== */}
+      <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh', zIndex: -1, opacity: 0.8 }}>
+        <LightRays
+          raysOrigin="top-center"
+          raysColor="#72cf9f"
+          raysSpeed={0.2}
+          lightSpread={3}
+          rayLength={1.3}
+          pulsating={false}
+          fadeDistance={1}
+          saturation={1}
+          followMouse
+          mouseInfluence={0.05}
+          noiseAmount={0}
+          distortion={0}
+        />
+      </div>
+
       {/* ==================== NAVBAR ==================== */}
       <motion.nav
         initial={{ y: -80, x: '-50%', opacity: 0 }}
