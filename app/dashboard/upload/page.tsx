@@ -1,9 +1,7 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Upload, FileText, CheckCircle2, X, AlertCircle } from 'lucide-react'
-import { useUpload } from '@/hooks/useUpload'
+import { Upload, FileText, X, AlertCircle } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 
@@ -17,10 +15,11 @@ const item = {
 }
 
 export default function UploadPage() {
-  const router = useRouter()
-  const { uploadDocument, isLoading, error } = useUpload()
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [fileError, setFileError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [apiError, setApiError] = useState<string | null>(null)
+  const [summary, setSummary] = useState<string | null>(null)
 
   const maxSize = 50 * 1024 * 1024
 
@@ -55,21 +54,41 @@ export default function UploadPage() {
 
   const handleUpload = async () => {
     if (!selectedFile) return
+    setIsLoading(true)
+    setApiError(null)
+    
     try {
-      await uploadDocument(selectedFile)
-      setTimeout(() => router.push('/dashboard'), 1500)
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to analyze document')
+      }
+
+      setSummary(data.summary)
     } catch (err) {
-      console.error('Upload error:', err)
+      const errorMessage = err instanceof Error ? err.message : 'Failed to analyze document. Please try again.'
+      setApiError(errorMessage)
+      console.error('Analysis error:', err)
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const steps = [
-    'Your document is uploaded securely',
-    'Our AI analyzes it in real-time',
-    'Results are ready in seconds (usually 2-5s)',
-    'You can ask follow-up questions',
-    'Your data is stored securely and never shared',
-  ]
+  const handleReset = () => {
+    setSelectedFile(null)
+    setSummary(null)
+    setFileError(null)
+    setApiError(null)
+  }
+
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="max-w-2xl mx-auto">
@@ -79,109 +98,149 @@ export default function UploadPage() {
         <p className="text-sm text-text-dim">Upload a document for AI-powered analysis. Supported: PDF, DOCX, TXT</p>
       </motion.div>
 
-      {/* Drop Zone */}
-      <motion.div variants={item}>
-        <div
-          {...getRootProps()}
-          className={`p-10 rounded-xl text-center cursor-pointer transition-all duration-300 ${
-            isDragActive ? 'border-accent-cyan' : ''
-          } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          style={{
-            background: isDragActive ? 'rgba(6, 182, 212, 0.05)' : 'rgba(255, 255, 255, 0.02)',
-            border: `2px dashed ${isDragActive ? 'rgba(6, 182, 212, 0.4)' : 'rgba(255, 255, 255, 0.08)'}`,
-          }}
-        >
-          <input {...getInputProps()} />
-          <Upload size={32} className="text-text-dim mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-text-secondary mb-2 whitespace-pre-wrap">
-            {isDragActive ? 'Drop file here...' : 'Click or drag file to upload'}
-          </h3>
-          <p className="text-sm text-text-dim">Supports internal or public documents up to 50MB</p>
-        </div>
-      </motion.div>
-
-      {/* Selected File */}
-      {selectedFile && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-6 p-5 rounded-xl"
-          style={{
-            background: 'rgba(255, 255, 255, 0.02)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-          }}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <FileText size={18} className="text-accent-cyan" />
-              <div>
-                <p className="text-sm text-white font-medium">{selectedFile.name}</p>
-                <p className="text-xs text-text-dim">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setSelectedFile(null)}
-              className="p-1 rounded-md text-text-dim hover:text-white hover:bg-white/[0.04] transition-all"
+      {/* Show upload form if no summary yet */}
+      {!summary && (
+        <>
+          {/* Drop Zone */}
+          <motion.div variants={item}>
+            <div
+              {...getRootProps()}
+              className={`p-10 rounded-xl text-center cursor-pointer transition-all duration-300 ${
+                isDragActive ? 'border-accent-cyan' : ''
+              } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              style={{
+                background: isDragActive ? 'rgba(6, 182, 212, 0.05)' : 'rgba(255, 255, 255, 0.02)',
+                border: `2px dashed ${isDragActive ? 'rgba(6, 182, 212, 0.4)' : 'rgba(255, 255, 255, 0.08)'}`,
+              }}
             >
-              <X size={16} />
-            </button>
-          </div>
+              <input {...getInputProps()} />
+              <Upload size={32} className="text-text-dim mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-text-secondary mb-2 whitespace-pre-wrap">
+                {isDragActive ? 'Drop file here...' : 'Click or drag file to upload'}
+              </h3>
+              <p className="text-sm text-text-dim">Supports internal or public documents up to 50MB</p>
+            </div>
+          </motion.div>
+
+          {/* Selected File */}
+          {selectedFile && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-6 p-5 rounded-xl"
+              style={{
+                background: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+              }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <FileText size={18} className="text-accent-cyan" />
+                  <div>
+                    <p className="text-sm text-white font-medium">{selectedFile.name}</p>
+                    <p className="text-xs text-text-dim">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedFile(null)}
+                  className="p-1 rounded-md text-text-dim hover:text-white hover:bg-white/[0.04] transition-all"
+                  disabled={isLoading}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                onClick={handleUpload}
+                disabled={isLoading}
+                className="w-full py-3 rounded-lg bg-accent-cyan text-black font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50 transition-all"
+                style={{ boxShadow: '0 0 20px rgba(6, 182, 212, 0.15)' }}
+              >
+                {isLoading ? (
+                  <>
+                    <span className="w-4 h-4 rounded-full border-2 border-black/30 border-t-black animate-spin" />
+                    Analyzing your document...
+                  </>
+                ) : (
+                  <>
+                    <Upload size={16} />
+                    Analyze Document
+                  </>
+                )}
+              </motion.button>
+            </motion.div>
+          )}
+
+          {/* Errors */}
+          {(apiError || fileError) && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 flex items-center gap-2 px-4 py-3 rounded-lg text-sm"
+              style={{
+                background: 'rgba(239, 68, 68, 0.08)',
+                border: '1px solid rgba(239, 68, 68, 0.20)',
+                color: '#EF4444',
+              }}
+            >
+              <AlertCircle size={16} />
+              {apiError || fileError}
+            </motion.div>
+          )}
+        </>
+      )}
+
+      {/* Summary Results */}
+      {summary && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
+          {/* Summary Card */}
+          <motion.div
+            variants={item}
+            className="p-6 rounded-xl"
+            style={{
+              background: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+            }}
+          >
+            <h2 className="text-xl font-semibold text-white mb-6">Analysis Results</h2>
+            <div className="prose prose-invert max-w-none text-sm text-text-secondary space-y-4">
+              {summary.split('\n\n').map((section, idx) => (
+                <div key={idx}>
+                  {section.includes('##') ? (
+                    <>
+                      <h3 className="text-base font-semibold text-white mt-4 mb-2">
+                        {section.split('\n')[0].replace(/^#+\s*/, '')}
+                      </h3>
+                      <p className="text-sm text-text-secondary whitespace-pre-wrap">
+                        {section.split('\n').slice(1).join('\n').trim()}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-text-secondary whitespace-pre-wrap">{section}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Upload Another Button */}
           <motion.button
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
-            onClick={handleUpload}
-            disabled={isLoading}
-            className="w-full py-3 rounded-lg bg-accent-cyan text-black font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50 transition-all"
-            style={{ boxShadow: '0 0 20px rgba(6, 182, 212, 0.15)' }}
+            onClick={handleReset}
+            className="w-full py-3 rounded-lg bg-accent-emerald text-black font-semibold text-sm flex items-center justify-center gap-2 transition-all"
+            style={{ boxShadow: '0 0 20px rgba(5, 150, 105, 0.15)' }}
           >
-            {isLoading ? (
-              <span className="w-4 h-4 rounded-full border-2 border-black/30 border-t-black animate-spin" />
-            ) : (
-              <>
-                <Upload size={16} />
-                Upload Document
-              </>
-            )}
+            <Upload size={16} />
+            Upload Another Document
           </motion.button>
         </motion.div>
       )}
-
-      {/* Errors */}
-      {(error || fileError) && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-4 flex items-center gap-2 px-4 py-3 rounded-lg text-sm"
-          style={{
-            background: 'rgba(239, 68, 68, 0.08)',
-            border: '1px solid rgba(239, 68, 68, 0.20)',
-            color: '#EF4444',
-          }}
-        >
-          <AlertCircle size={16} />
-          {error || fileError}
-        </motion.div>
-      )}
-
-      {/* What Happens Next */}
-      <motion.div
-        variants={item}
-        className="mt-8 p-6 rounded-xl"
-        style={{
-          background: 'rgba(255, 255, 255, 0.02)',
-          border: '1px solid rgba(255, 255, 255, 0.06)',
-        }}
-      >
-        <h3 className="text-sm font-semibold text-white mb-4">What happens next?</h3>
-        <ul className="space-y-2.5">
-          {steps.map((step, i) => (
-            <li key={i} className="flex items-start gap-2.5">
-              <CheckCircle2 size={14} className="text-accent-emerald mt-0.5 flex-shrink-0" />
-              <span className="text-xs text-text-muted leading-relaxed">{step}</span>
-            </li>
-          ))}
-        </ul>
-      </motion.div>
     </motion.div>
   )
 }

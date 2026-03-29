@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { ClaroLogo } from '@/components/shared/ClaroLogo'
-import { User, LogOut, Settings, Bell } from 'lucide-react'
+import { User, LogOut, Settings } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 
 export interface NavbarProps {
@@ -50,17 +50,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Right: Controls */}
           <div className="flex items-center gap-3 ml-auto">
-            {/* Notification Bell */}
-            {!hideUserMenu && (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="p-2 rounded-lg text-text-dim hover:text-text-secondary hover:bg-white/[0.04] transition-all"
-              >
-                <Bell size={18} />
-              </motion.button>
-            )}
-
             {/* User Menu */}
             {!hideUserMenu && (
               <div className="relative">

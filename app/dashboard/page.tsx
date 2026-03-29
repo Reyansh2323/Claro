@@ -280,17 +280,103 @@ export default function DashboardPage() {
           )}
         </motion.div>
 
-        {/* AI Neural Panel — 1 column */}
-        <motion.div
-          variants={item}
-          className="relative rounded-xl overflow-hidden scanner-container"
-          style={{
-            background: 'rgba(255, 255, 255, 0.02)',
-            border: '1px solid rgba(255, 255, 255, 0.06)',
-          }}
-        >
-          {/* Scanner Line */}
-          <div className="scanner-line" />
+        {/* Latest Analysis & AI Neural Panel — 1 column */}
+        <div className="space-y-6">
+          {/* Latest Analysis */}
+          <motion.div
+            variants={item}
+            className="rounded-xl overflow-hidden"
+            style={{
+              background: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+            }}
+          >
+            <div className="px-6 py-4 border-b border-white/[0.06]">
+              <div className="flex items-center gap-2">
+                <Sparkles size={14} className="text-accent-cyan" />
+                <h2 className="text-sm font-semibold text-white tracking-wide">Latest Analysis</h2>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {documents.some(d => d.status && (d.status as string) === 'ANALYZED') ? (
+                (() => {
+                  const latestAnalyzed = documents
+                    .filter(d => d.status && (d.status as string) === 'ANALYZED')
+                    .sort((a, b) => new Date(b.uploadedAt || 0).getTime() - new Date(a.uploadedAt || 0).getTime())[0]
+                  
+                  return (
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-xs text-text-dim font-medium mb-1">Document</p>
+                        <Link
+                          href={`/dashboard/documents/${latestAnalyzed.id}`}
+                          className="text-sm text-accent-cyan hover:text-accent-emerald transition-colors truncate block font-medium"
+                        >
+                          {latestAnalyzed.fileName}
+                        </Link>
+                      </div>
+                      <div>
+                        <p className="text-xs text-text-dim font-medium mb-1">Analyzed</p>
+                        <p className="text-sm text-text-secondary">
+                          {latestAnalyzed.uploadedAt
+                            ? formatDistanceToNow(new Date(latestAnalyzed.uploadedAt), { addSuffix: true })
+                            : 'Recently'}
+                        </p>
+                      </div>
+                      <Link
+                        href={`/dashboard/documents/${latestAnalyzed.id}`}
+                        className="block mt-4"
+                      >
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="w-full py-2 rounded-lg text-xs font-medium text-black transition-all flex items-center justify-center gap-2"
+                          style={{
+                            background: 'rgba(6, 182, 212, 0.8)',
+                            boxShadow: '0 0 12px rgba(6, 182, 212, 0.2)',
+                          }}
+                        >
+                          <ExternalLink size={12} />
+                          View Full Analysis
+                        </motion.button>
+                      </Link>
+                    </div>
+                  )
+                })()
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-xs text-text-dim mb-2">No documents analyzed yet</p>
+                  <Link href="/dashboard/upload">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full py-2 rounded-lg text-xs font-medium text-black transition-all flex items-center justify-center gap-2"
+                      style={{
+                        background: 'rgba(6, 182, 212, 0.8)',
+                        boxShadow: '0 0 12px rgba(6, 182, 212, 0.2)',
+                      }}
+                    >
+                      <Upload size={12} />
+                      Upload Your First Document
+                    </motion.button>
+                  </Link>
+                </div>
+              )}
+            </div>
+          </motion.div>
+
+          {/* AI Neural Panel */}
+          <motion.div
+            variants={item}
+            className="relative rounded-xl overflow-hidden scanner-container"
+            style={{
+              background: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+            }}
+          >
+            {/* Scanner Line */}
+            <div className="scanner-line" />
 
           <div className="px-6 py-4 border-b border-white/[0.06]">
             <div className="flex items-center gap-2">
@@ -372,7 +458,8 @@ export default function DashboardPage() {
               </motion.button>
             </Link>
           </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
     </motion.div>
   )

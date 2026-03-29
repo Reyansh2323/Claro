@@ -8,24 +8,16 @@ import { ClaroLogo } from '@/components/shared/ClaroLogo'
 import {
   LayoutDashboard,
   FileSearch,
-  ShieldAlert,
-  DollarSign,
   Upload,
-  Settings,
-  HelpCircle,
 } from 'lucide-react'
 
 const NAV_ITEMS = [
   { id: 'command', label: 'Command Center', href: '/dashboard', icon: LayoutDashboard },
   { id: 'upload', label: 'Upload Document', href: '/dashboard/upload', icon: Upload },
   { id: 'analysis', label: 'Contract Analysis', href: '/dashboard/analysis', icon: FileSearch },
-  { id: 'risk', label: 'Risk Intelligence', href: '/dashboard/history', icon: ShieldAlert },
-  { id: 'financial', label: 'Financial Extraction', href: '/dashboard/documents', icon: DollarSign },
 ]
 
-const BOTTOM_NAV = [
-  { id: 'settings', label: 'System Protocols', href: '/dashboard/settings', icon: Settings },
-]
+const BOTTOM_NAV: typeof NAV_ITEMS = []
 
 export interface SidebarProps {
   expanded?: boolean
@@ -58,9 +50,6 @@ export const Sidebar: React.FC<SidebarProps> = () => {
         <Link href="/">
           <ClaroLogo size="sm" animate={false} />
         </Link>
-        <p className="text-[10px] uppercase tracking-[0.25em] text-text-dim mt-3 font-medium">
-          Legal Intelligence Platform
-        </p>
       </div>
 
       {/* Navigation */}
@@ -130,10 +119,6 @@ export const Sidebar: React.FC<SidebarProps> = () => {
             </Link>
           )
         })}
-        <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-text-dim hover:text-text-muted transition-colors">
-          <HelpCircle size={18} className="flex-shrink-0" />
-          <span className="text-[13px] font-medium">Support</span>
-        </button>
 
         <div className="px-4 pt-3">
           <p className="text-[10px] text-text-dim font-medium tracking-wider uppercase">

@@ -283,33 +283,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ==================== CTA ==================== */}
-      <section className="py-24 px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 80, damping: 20 }}
-          viewport={{ once: true }}
-          className="max-w-3xl mx-auto text-center"
-        >
-          <h2 className="text-display text-4xl md:text-5xl text-white mb-6">
-            Ready to get started?
-          </h2>
-
-          <Link href="/signup">
-            <motion.button
-              whileHover={{ scale: 1.03, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              className="px-10 py-4 rounded-lg bg-accent-cyan text-black font-semibold text-base flex items-center gap-3 mx-auto transition-all"
-              style={{ boxShadow: '0 0 40px rgba(6, 182, 212, 0.25)' }}
-            >
-              Start Free Analysis
-              <ArrowRight size={18} />
-            </motion.button>
-          </Link>
-        </motion.div>
-      </section>
-
       <Footer />
     </div>
   )
